@@ -23,23 +23,18 @@ CURDIR=$(cd "$(dirname "$0")" && pwd)
 
 . "$CURDIR/env.sh"
 
-if [ -z "$REMOTE_USER" ]; then
+if [ -z ${REMOTE_USER+x} ]; then
     echo "REMOTE_USER is not set"
     exit 1
 fi
 
-if [ -z "$GIT_EMAIL" ]; then
+if [ -z ${GIT_EMAIL+x} ]; then
     echo "GIT_EMAIL is not set"
     exit 1
 fi
 
-if [ -z "$GIT_USERNAME" ]; then
+if [ -z ${GIT_USERNAME+x} ]; then
     echo "GIT_USERNAME is not set"
-    exit 1
-fi
-
-if [ -z "$TEAMMATE_GITHUB_ACCOUNTS" ]; then
-    echo "TEAMMATE_GITHUB_ACCOUNTS is not set"
     exit 1
 fi
 
