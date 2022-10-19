@@ -1,0 +1,11 @@
+---
+sort: sum
+reverse: true
+output: count,uri,sum,max,avg
+
+matching_groups:
+# - /api/player/competition/\w+/ranking
+# - /api/player/player/\w+
+# - /api/organizer/competition/\w+/score
+# - /api/organizer/competition/\w+/finish
+# - /api/organizer/player/\w+/disqualified

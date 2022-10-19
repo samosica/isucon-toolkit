@@ -1,0 +1,7 @@
+*
+!.gitignore
+!alp
+!alp/config.yml
+!setup.sh
+!setup-internal.mk
+!env-template.sh
