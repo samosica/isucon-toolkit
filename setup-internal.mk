@@ -30,6 +30,24 @@ first:
 		echo $(HOME)/alp already exists; \
 		echo skip copying $(MAKEFILE_DIR)/alp; \
 	fi
+	@if [ ! -e $(HOME)/Makefile ] || [ $(force) -eq 1 ]; then \
+		ln -f -s $(MAKEFILE_DIR)/toolkit.mk $(HOME)/Makefile; \
+	else \
+		echo $(HOME)/Makefile already exists; \
+		echo skip copying $(MAKEFILE_DIR)/Makefile; \
+	fi
+	@if [ ! -e $(HOME)/sync-all.sh ] || [ $(force) -eq 1 ]; then \
+		ln -f -s $(MAKEFILE_DIR)/sync-all.sh $(HOME)/sync-all.sh; \
+	else \
+		echo $(HOME)/sync-all.sh already exists; \
+		echo skip copying $(MAKEFILE_DIR)/sync-all.sh; \
+	fi
+	@if [ ! -e $(HOME)/sync.sh ] || [ $(force) -eq 1 ]; then \
+		ln -f -s $(MAKEFILE_DIR)/sync.sh $(HOME)/sync.sh; \
+	else \
+		echo $(HOME)/sync.sh already exists; \
+		echo skip copying $(MAKEFILE_DIR)/sync.sh; \
+	fi
 
 .PHONY: install-tools
 install-tools:

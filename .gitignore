@@ -5,3 +5,6 @@
 !setup.sh
 !setup-internal.mk
 !env-template.sh
+!toolkit.mk
+!sync.sh
+!sync-all.sh
