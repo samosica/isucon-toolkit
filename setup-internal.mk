@@ -19,7 +19,7 @@ HOME := /home/$(USER)
 .PHONY: first
 first:
 	@if [ ! -e $(HOME)/env.sh ] || [ $(force) -eq 1 ]; then \
-		cp $(MAKEFILE_DIR)/env.sh $(HOME); \
+		ln -f -s $(MAKEFILE_DIR)/env.sh $(HOME)/env.sh; \
 	else \
 		echo $(HOME)/env.sh already exists; \
 		echo skip copying $(MAKEFILE_DIR)/env.sh; \
