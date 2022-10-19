@@ -38,9 +38,18 @@ if [ -z "$GIT_USERNAME" ]; then
     exit 1
 fi
 
+if [ -z "$TEAMMATE_GITHUB_ACCOUNTS" ]; then
+    echo "TEAMMATE_GITHUB_ACCOUNTS is not set"
+    exit 1
+fi
+
 set -x
 
 TEMPDIR=$(mktemp -d)
+
+for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
+    curl "https://github.com/$a.keys" -o "$TEMPDIR/$a.pub"
+done
 
 for server in ${SERVERS[@]}; do
     echo "enter into $server"
@@ -54,9 +63,13 @@ for server in ${SERVERS[@]}; do
     ssh "$server" "echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh"
     ssh "$server" make -f "$TOOLKIT_DIR/setup-internal.mk" setup "force=$force"
 
+    # SSH key exchange
+    for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
+        ssh-copy-id -f -i "$TEMPDIR/$a.pub" "$server"
+    done
+
     TEMPFILE="$TEMPDIR/id_rsa_$server.pub"
 
-    # SSH key exchange
     rsync -av "$server:$REMOTE_HOME/.ssh/id_rsa.pub" "$TEMPFILE"
     for s in ${SERVERS[@]}; do
         if [ "$s" != "$server" ]; then
