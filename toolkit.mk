@@ -3,18 +3,6 @@ HOME := /home/$(USER)
 
 include $(HOME)/env.sh
 
-SERVICE_NAME := # fill here
-
-REPO_DIR := # fill here
-
-MYSQL_USER := root
-MYSQL_PASSWORD := root
-
-NGINX_ACCESS_LOG := /var/log/nginx/access.log
-MYSQL_SLOW_LOG := /var/log/mysql/slow.log
-SQLITE_TRACE_LOG := # fill here
-STATS_DIR := # fill here
-
 ENVVARS := \
 	SERVICE_NAME \
 	REPO_DIR \
