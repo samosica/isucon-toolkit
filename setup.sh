@@ -43,6 +43,11 @@ if [ -z ${GITHUB_REPO+x} ]; then
     exit 1
 fi
 
+if ! command -v gh > /dev/null 2>&1; then
+    echo "gh is not installed"
+    exit 1
+fi
+
 set -x
 
 TEMPDIR=$(mktemp -d)
