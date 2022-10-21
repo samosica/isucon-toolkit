@@ -23,6 +23,10 @@ TEAMMATE_GITHUB_ACCOUNTS=()
 # SERVERS=("s1" "s2" "s3")
 SERVERS=()
 
+# ベンチマークサーバー
+# 指定したサーバーの`~/bench/bench`にベンチマーカーを配置する必要があります
+BENCHMARK_SERVER=
+
 # サーバー上で使うユーザー名
 REMOTE_USER=
 
@@ -54,3 +58,4 @@ SQLITE_TRACE_LOG=
 
 # ログの解析結果を保管するディレクトリのパス
 STATS_DIR=
+
