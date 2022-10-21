@@ -2,11 +2,14 @@
 set -eu
 
 usage(){
-    echo "$0 - set up multiple servers at once"
-    echo ""
-    echo "OPTIONS:"
-    echo "-f: force file update"
-    echo "-h: help"
+    cat <<EOF
+Usage: $0 [Option]...
+Set up multiple servers at once
+
+Options:
+    -f    force file update
+    -h    help
+EOF
     exit 0
 }
 
@@ -51,6 +54,7 @@ fi
 set -x
 
 TEMPDIR=$(mktemp -d)
+trap "rm -r $(TEMPDIR)" 0
 
 for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
     curl "https://github.com/$a.keys" -o "$TEMPDIR/$a.pub"
@@ -90,5 +94,3 @@ for server in ${SERVERS[@]}; do
 
     echo "leave $server"
 done
-
-rm -r "$TEMPDIR"
