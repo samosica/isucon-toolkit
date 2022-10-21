@@ -24,27 +24,27 @@ CURDIR=$(cd "$(dirname "$0")" && pwd)
 . "$CURDIR/env.sh"
 
 if [ -z ${REMOTE_USER+x} ]; then
-    echo "REMOTE_USER is not set"
+    echo "REMOTE_USER is not set" 1>&2
     exit 1
 fi
 
 if [ -z ${GIT_EMAIL+x} ]; then
-    echo "GIT_EMAIL is not set"
+    echo "GIT_EMAIL is not set" 1>&2
     exit 1
 fi
 
 if [ -z ${GIT_USERNAME+x} ]; then
-    echo "GIT_USERNAME is not set"
+    echo "GIT_USERNAME is not set" 1>&2
     exit 1
 fi
 
 if [ -z ${GITHUB_REPO+x} ]; then
-    echo "GITHUB_REPO is not set"
+    echo "GITHUB_REPO is not set" 1>&2
     exit 1
 fi
 
-if ! command -v gh > /dev/null 2>&1; then
-    echo "gh is not installed"
+if ! command -v gh >/dev/null 2>&1; then
+    echo "gh is not installed" 1>&2
     exit 1
 fi
 
