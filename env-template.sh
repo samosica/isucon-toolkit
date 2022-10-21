@@ -11,6 +11,10 @@ GIT_EMAIL=
 # チームの名前
 GIT_USERNAME=
 
+# アプリケーションのプログラムや設定ファイルを管理するGitHubのレポジトリ
+# GITHUB_REPO=account_name/repository_name
+GITHUB_REPO=
+
 # チームメイトのGitHubアカウント
 TEAMMATE_GITHUB_ACCOUNTS=()
 

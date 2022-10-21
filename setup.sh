@@ -38,6 +38,11 @@ if [ -z ${GIT_USERNAME+x} ]; then
     exit 1
 fi
 
+if [ -z ${GITHUB_REPO+x} ]; then
+    echo "GITHUB_REPO is not set"
+    exit 1
+fi
+
 set -x
 
 TEMPDIR=$(mktemp -d)
@@ -66,6 +71,12 @@ for server in ${SERVERS[@]}; do
     TEMPFILE="$TEMPDIR/id_rsa_$server.pub"
 
     rsync -av "$server:$REMOTE_HOME/.ssh/id_rsa.pub" "$TEMPFILE"
+
+    gh repo deploy-key add "$TEMPFILE" \
+       --repo "$GITHUB_REPO" \
+       --title "$server" \
+       --allow-write
+
     for s in ${SERVERS[@]}; do
         if [ "$s" != "$server" ]; then
             ssh-copy-id -f -i "$TEMPFILE" "$s"
