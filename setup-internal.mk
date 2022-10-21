@@ -69,6 +69,13 @@ install-tools:
 	tar xf notify_slack-linux-amd64.tar.gz && \
 	sudo install notify_slack /usr/local/bin
 
+	VERSION="v0.22.0"
+	FILE="dsq-$(uname -s | awk '{ print tolower($0) }')-x64-$VERSION.zip"
+	cd $(TMPDIR) && \
+	curl -LO "https://github.com/multiprocessio/dsq/releases/download/$VERSION/$FILE" && \
+	unzip "$FILE" && \
+	sudo install dsq /usr/local/bin
+
 	rm -r $(TMPDIR)
 
 .PHONY: git-setup
