@@ -15,6 +15,24 @@ MYSQL_SLOW_LOG := /var/log/mysql/slow.log
 SQLITE_TRACE_LOG := # fill here
 STATS_DIR := # fill here
 
+ENVVARS := \
+	SERVICE_NAME \
+	REPO_DIR \
+	MYSQL_USER \
+	MYSQL_PASSWORD \
+	NGINX_ACCESS_LOG \
+	MYSQL_SLOW_LOG \
+	SQLITE_TRACE_LOG \
+	STATS_DIR
+
+definedcheck = $(if $(strip $($1)),,$(eval MISSING_ENVVARS += $1))
+
+$(foreach envvar,$(ENVVARS),$(call definedcheck,$(envvar)))
+
+ifneq ($(strip $(MISSING_ENVVARS)),)
+$(error unset variables: $(MISSING_ENVVARS); see $(HOME)/env.sh)
+endif
+
 .PHONY: sync
 sync: ## Sync files in this server with remote repository
 	$(HOME)/sync.sh $(REPO_DIR) $(BRANCH)
