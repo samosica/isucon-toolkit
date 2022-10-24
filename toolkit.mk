@@ -3,23 +3,22 @@ HOME := /home/$(USER)
 
 include $(HOME)/env.sh
 
-ENVVARS := \
+REQUIRED_ENVVARS := \
 	SERVICE_NAME \
 	REPO_DIR \
 	MYSQL_USER \
 	MYSQL_PASSWORD \
 	NGINX_ACCESS_LOG \
 	MYSQL_SLOW_LOG \
-	SQLITE_TRACE_LOG \
 	STATS_DIR
 
-definedcheck = $(if $(strip $($1)),,$(eval MISSING_ENVVARS += $1))
+define definedcheck
+$(eval undefine missing_vars)
+$(foreach v,$(1),$(if $($(v)),,$(eval missing_vars += $(v))))
+$(if $(missing_vars),$(error unset variables: $(missing_vars); see $(HOME)/env.sh),)
+endef
 
-$(foreach envvar,$(ENVVARS),$(call definedcheck,$(envvar)))
-
-ifneq ($(strip $(MISSING_ENVVARS)),)
-$(error unset variables: $(MISSING_ENVVARS); see $(HOME)/env.sh)
-endif
+$(call definedcheck,$(REQUIRED_ENVVARS))
 
 .PHONY: sync
 sync: ## Sync files in this server with remote repository
@@ -48,9 +47,7 @@ before-bench: log-rotate restart ## Prepare for a benchmark
 
 .PHONY: bench
 bench: before-bench ## Run a benchmark. You must specify BENCHMARK_SERVER
-ifeq ($(strip $(BENCHMARK_SERVER)),)
-	$(error set BENCHMARK_SERVER in $(HOME)/env.sh)
-endif
+	$(call definedcheck,BENCHMARK_SERVER)
 	ssh $(BENCHMARK_SERVER) "cd bench; ./bench"
 
 .PHONY: analyze-nginx
@@ -66,6 +63,7 @@ analyze-nginx: $(HOME)/alp/config.yml ## Analyze a Nginx log
 
 .PHONY: analyze-sqlite
 analyze-sqlite: ## Analyze a SQLite log
+	$(call definedcheck,SQLITE_TRACE_LOG)
 	mkdir -p $(STATS_DIR)
 	# change this SQL statement
 	@if sudo [ -e $(SQLITE_TRACE_LOG) ]; then \
