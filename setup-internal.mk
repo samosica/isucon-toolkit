@@ -25,34 +25,29 @@ HOME := /home/$(USER)
 .PHONY: first
 first:
 	@if [ ! -e $(HOME)/env.sh ] || [ $(force) -eq 1 ]; then \
-		ln -f -s $(MAKEFILE_DIR)/env.sh $(HOME)/env.sh; \
+		cp $(MAKEFILE_DIR)/env.sh $(HOME)/; \
 	else \
-		echo $(HOME)/env.sh already exists; \
-		echo skip copying $(MAKEFILE_DIR)/env.sh; \
+		echo "$(HOME)/env.sh already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/alp ] || [ $(force) -eq 1 ]; then \
-		ln -f -s $(MAKEFILE_DIR)/alp $(HOME)/alp; \
+		cp -r $(MAKEFILE_DIR)/alp $(HOME)/; \
 	else \
-		echo $(HOME)/alp already exists; \
-		echo skip copying $(MAKEFILE_DIR)/alp; \
+		echo "$(HOME)/alp already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/Makefile ] || [ $(force) -eq 1 ]; then \
-		ln -f -s $(MAKEFILE_DIR)/toolkit.mk $(HOME)/Makefile; \
+		cp $(MAKEFILE_DIR)/toolkit.mk $(HOME)/; \
 	else \
-		echo $(HOME)/Makefile already exists; \
-		echo skip copying $(MAKEFILE_DIR)/Makefile; \
+		echo "$(HOME)/Makefile already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/sync-all.sh ] || [ $(force) -eq 1 ]; then \
-		ln -f -s $(MAKEFILE_DIR)/sync-all.sh $(HOME)/sync-all.sh; \
+		cp $(MAKEFILE_DIR)/sync-all.sh $(HOME)/; \
 	else \
-		echo $(HOME)/sync-all.sh already exists; \
-		echo skip copying $(MAKEFILE_DIR)/sync-all.sh; \
+		echo "$(HOME)/sync-all.sh already exists; skip copying" \
 	fi
 	@if [ ! -e $(HOME)/sync.sh ] || [ $(force) -eq 1 ]; then \
-		ln -f -s $(MAKEFILE_DIR)/sync.sh $(HOME)/sync.sh; \
+		cp $(MAKEFILE_DIR)/sync.sh $(HOME)/; \
 	else \
-		echo $(HOME)/sync.sh already exists; \
-		echo skip copying $(MAKEFILE_DIR)/sync.sh; \
+		echo "$(HOME)/sync.sh already exists; skip copying"; \
 	fi
 
 .PHONY: install-tools
