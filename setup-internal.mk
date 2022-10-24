@@ -6,17 +6,18 @@ MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 include $(MAKEFILE_DIR)/env.sh
 
-ENVVARS := \
-	GIT_EMAIL \
-	GIT_USERNAME
+define REQUIRED_ENVVARS :=
+GIT_EMAIL
+GIT_USERNAME
+endef
 
-definedcheck = $(if $(strip $($1)),,$(eval MISSING_ENVVARS += $1))
+define definedcheck
+$(eval undefine missing_vars)
+$(foreach v,$(1),$(if $($(v)),,$(eval missing_vars += $(v))))
+$(if $(missing_vars),$(error unset variables: $(missing_vars); see $(MAKEFILE_DIR)/env.sh),)
+endef
 
-$(foreach envvar,$(ENVVARS),$(call definedcheck,$(envvar)))
-
-ifneq ($(strip $(MISSING_ENVVARS)),)
-$(error unset variables: $(MISSING_ENVVARS); see $(MAKEFILE_DIR)/env.sh)
-endif
+$(call definedcheck,$(REQUIRED_ENVVARS))
 
 # In some environments, $HOME is not /home/user
 HOME := /home/$(USER)

@@ -3,14 +3,15 @@ HOME := /home/$(USER)
 
 include $(HOME)/env.sh
 
-REQUIRED_ENVVARS := \
-	SERVICE_NAME \
-	REPO_DIR \
-	MYSQL_USER \
-	MYSQL_PASSWORD \
-	NGINX_ACCESS_LOG \
-	MYSQL_SLOW_LOG \
-	STATS_DIR
+define REQUIRED_ENVVARS :=
+SERVICE_NAME
+REPO_DIR
+MYSQL_USER
+MYSQL_PASSWORD
+NGINX_ACCESS_LOG
+MYSQL_SLOW_LOG
+STATS_DIR
+endef
 
 define definedcheck
 $(eval undefine missing_vars)
