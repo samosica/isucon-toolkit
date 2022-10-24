@@ -58,24 +58,35 @@ first:
 .PHONY: install-tools
 install-tools:
 	$(eval TMPDIR := $(shell mktemp -d))
-	sudo apt install -y percona-toolkit
 
+# shell function does not start a new shell without `sh -c`
+# https://stackoverflow.com/questions/12989869/calling-command-v-find-from-gnu-makefile
+ifeq ($(shell sh -c "command -v pt-query-digest"),)
+	sudo apt install -y percona-toolkit
+endif
+
+ifeq ($(shell sh -c "command -v alp"),)
 	cd $(TMPDIR) && \
 	curl -LO https://github.com/tkuchiki/alp/releases/download/v1.0.11/alp_linux_amd64.tar.gz && \
 	tar xf alp_linux_amd64.tar.gz && \
 	sudo install alp /usr/local/bin
+endif
 
+ifeq ($(shell sh -c "command -v notify_slack"),)
 	cd $(TMPDIR) && \
 	curl -LO https://github.com/catatsuy/notify_slack/releases/download/v0.4.13/notify_slack-linux-amd64.tar.gz && \
 	tar xf notify_slack-linux-amd64.tar.gz && \
 	sudo install notify_slack /usr/local/bin
+endif
 
+ifeq ($(shell sh -c "command -v dsq"),)
 	$(eval VERSION := v0.22.0)
 	$(eval FILE := dsq-$(shell uname -s | awk '{ print tolower($$0) }')-x64-$(VERSION).zip)
 	cd $(TMPDIR) && \
 	curl -LO "https://github.com/multiprocessio/dsq/releases/download/$(VERSION)/$(FILE)" && \
 	unzip $(FILE) && \
 	sudo install dsq /usr/local/bin
+endif
 
 	rm -r $(TMPDIR)
 
