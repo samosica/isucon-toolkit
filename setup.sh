@@ -54,7 +54,7 @@ fi
 set -x
 
 TEMPDIR=$(mktemp -d)
-trap "rm -r $(TEMPDIR)" 0
+trap "rm -r $TEMPDIR" 0
 
 for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
     curl "https://github.com/$a.keys" -o "$TEMPDIR/$a.pub"
@@ -81,10 +81,14 @@ for server in ${SERVERS[@]}; do
 
     rsync -av "$server:$REMOTE_HOME/.ssh/id_rsa.pub" "$TEMPFILE"
 
-    gh repo deploy-key add "$TEMPFILE" \
-       --repo "$GITHUB_REPO" \
-       --title "$server" \
-       --allow-write
+    if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
+        gh repo deploy-key add "$TEMPFILE" \
+           --repo "$GITHUB_REPO" \
+           --title "$server" \
+           --allow-write
+    else
+        echo "deploy key of $server is already added"
+    fi
 
     for s in ${SERVERS[@]}; do
         if [ "$s" != "$server" ]; then
