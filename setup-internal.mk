@@ -22,33 +22,17 @@ $(call definedcheck,$(REQUIRED_ENVVARS))
 # In some environments, $HOME is not /home/user
 HOME := /home/$(USER)
 
+ifneq ($(wildcard $(HOME)/.setup-lock),)
+$(error [error] setup has been done; if you would like to set up again, remove $(HOME)/.setup-lock)
+endif
+
 .PHONY: place-files
 place-files: ## Place scripts and config files
-	@if [ ! -e $(HOME)/env.sh ] || [ $(force) -eq 1 ]; then \
-		cp $(MAKEFILE_DIR)/env.sh $(HOME)/; \
-	else \
-		echo "[info] $(HOME)/env.sh already exists; skip copying"; \
-	fi
-	@if [ ! -e $(HOME)/alp ] || [ $(force) -eq 1 ]; then \
-		cp -r $(MAKEFILE_DIR)/alp $(HOME)/; \
-	else \
-		echo "[info] $(HOME)/alp already exists; skip copying"; \
-	fi
-	@if [ ! -e $(HOME)/Makefile ] || [ $(force) -eq 1 ]; then \
-		cp $(MAKEFILE_DIR)/toolkit.mk $(HOME)/Makefile; \
-	else \
-		echo "[info] $(HOME)/Makefile already exists; skip copying"; \
-	fi
-	@if [ ! -e $(HOME)/sync-all.sh ] || [ $(force) -eq 1 ]; then \
-		cp $(MAKEFILE_DIR)/sync-all.sh $(HOME)/; \
-	else \
-		echo "[info] $(HOME)/sync-all.sh already exists; skip copying"; \
-	fi
-	@if [ ! -e $(HOME)/sync.sh ] || [ $(force) -eq 1 ]; then \
-		cp $(MAKEFILE_DIR)/sync.sh $(HOME)/; \
-	else \
-		echo "[info] $(HOME)/sync.sh already exists; skip copying"; \
-	fi
+	cp $(MAKEFILE_DIR)/env.sh $(HOME)/
+	cp -r $(MAKEFILE_DIR)/alp $(HOME)/
+	cp $(MAKEFILE_DIR)/toolkit.mk $(HOME)/Makefile
+	cp $(MAKEFILE_DIR)/sync-all.sh $(HOME)/
+	cp $(MAKEFILE_DIR)/sync.sh $(HOME)/
 
 .PHONY: install-tools
 install-tools: ## Install tools
@@ -96,8 +80,8 @@ git-setup: ## Configure Git
 
 .PHONY: ssh-setup
 ssh-setup: ## Generate SSH key
-	mkdir -p $(HOME)/.ssh
 ifeq ($(wildcard $(HOME)/.ssh/id_rsa),)
+	mkdir -p $(HOME)/.ssh
 	ssh-keygen -f $(HOME)/.ssh/id_rsa -N ""
 endif
 

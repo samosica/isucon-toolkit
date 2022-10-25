@@ -10,7 +10,6 @@ Usage: $0 [Option]...
 Set up multiple servers at once
 
 Options:
-    -f    force file update
     -h    help
 EOF
     exit 0
@@ -32,11 +31,8 @@ definedcheck(){
     fi
 }
 
-force=0
-
 while getopts fh OPT; do
     case "$OPT" in
-        f) force=1 ;;
         h) usage
     esac
 done
@@ -69,7 +65,8 @@ for server in ${SERVERS[@]}; do
     ssh "$server" mkdir -p "$TOOLKIT_DIR"
     rsync -av "$CURDIR/" "$server:$TOOLKIT_DIR"
     ssh "$server" "echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh"
-    ssh "$server" make -f "$TOOLKIT_DIR/setup-internal.mk" setup "force=$force"
+    ssh "$server" make -f "$TOOLKIT_DIR/setup-internal.mk" setup
+    ssh "$server" touch "$REMOTE_HOME/.setup-lock"
 
     # SSH key exchange
     for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
