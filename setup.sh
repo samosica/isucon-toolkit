@@ -52,11 +52,11 @@ fi
 
 set -ux
 
-TEMPDIR=$(mktemp -d)
-trap "rm -r $TEMPDIR" 0
+tempdir=$(mktemp -d)
+trap "rm -r $tempdir" 0
 
 for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
-    curl "https://github.com/$a.keys" -o "$TEMPDIR/$a.pub"
+    curl "https://github.com/$a.keys" -o "$tempdir/$a.pub"
 done
 
 for server in ${SERVERS[@]}; do
@@ -73,15 +73,15 @@ for server in ${SERVERS[@]}; do
 
     # SSH key exchange
     for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
-        ssh-copy-id -f -i "$TEMPDIR/$a.pub" "$server"
+        ssh-copy-id -f -i "$tempdir/$a.pub" "$server"
     done
 
-    TEMPFILE="$TEMPDIR/id_rsa_$server.pub"
+    tempfile="$tempdir/id_rsa_$server.pub"
 
-    rsync -av "$server:$REMOTE_HOME/.ssh/id_rsa.pub" "$TEMPFILE"
+    rsync -av "$server:$REMOTE_HOME/.ssh/id_rsa.pub" "$tempfile"
 
     if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
-        gh repo deploy-key add "$TEMPFILE" \
+        gh repo deploy-key add "$tempfile" \
            --repo "$GITHUB_REPO" \
            --title "$server" \
            --allow-write
@@ -91,7 +91,7 @@ for server in ${SERVERS[@]}; do
 
     for s in ${SERVERS[@]}; do
         if [ "$s" != "$server" ]; then
-            ssh-copy-id -f -i "$TEMPFILE" "$s"
+            ssh-copy-id -f -i "$tempfile" "$s"
         fi
     done
 

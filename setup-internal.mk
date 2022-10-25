@@ -35,14 +35,14 @@ place-files: ## Place scripts and config files
 		echo "[info] $(HOME)/alp already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/Makefile ] || [ $(force) -eq 1 ]; then \
-		cp $(MAKEFILE_DIR)/toolkit.mk $(HOME)/; \
+		cp $(MAKEFILE_DIR)/toolkit.mk $(HOME)/Makefile; \
 	else \
 		echo "[info] $(HOME)/Makefile already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/sync-all.sh ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/sync-all.sh $(HOME)/; \
 	else \
-		echo "[info] $(HOME)/sync-all.sh already exists; skip copying" \
+		echo "[info] $(HOME)/sync-all.sh already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/sync.sh ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/sync.sh $(HOME)/; \
@@ -52,7 +52,7 @@ place-files: ## Place scripts and config files
 
 .PHONY: install-tools
 install-tools: ## Install tools
-	$(eval TMPDIR := $(shell mktemp -d))
+	$(eval tmpdir := $(shell mktemp -d))
 
 # shell function does not start a new shell without `sh -c`
 # https://stackoverflow.com/questions/12989869/calling-command-v-find-from-gnu-makefile
@@ -61,29 +61,33 @@ ifeq ($(shell sh -c "command -v pt-query-digest"),)
 endif
 
 ifeq ($(shell sh -c "command -v alp"),)
-	cd $(TMPDIR) && \
+	cd $(tmpdir) && \
 	curl -LO https://github.com/tkuchiki/alp/releases/download/v1.0.11/alp_linux_amd64.tar.gz && \
 	tar xf alp_linux_amd64.tar.gz && \
 	sudo install alp /usr/local/bin
 endif
 
 ifeq ($(shell sh -c "command -v notify_slack"),)
-	cd $(TMPDIR) && \
+	cd $(tmpdir) && \
 	curl -LO https://github.com/catatsuy/notify_slack/releases/download/v0.4.13/notify_slack-linux-amd64.tar.gz && \
 	tar xf notify_slack-linux-amd64.tar.gz && \
 	sudo install notify_slack /usr/local/bin
 endif
 
+ifeq ($(shell sh -c "command -v unzip"),)
+	sudo apt install -y unzip
+endif
+
 ifeq ($(shell sh -c "command -v dsq"),)
-	$(eval VERSION := v0.22.0)
-	$(eval FILE := dsq-$(shell uname -s | awk '{ print tolower($$0) }')-x64-$(VERSION).zip)
-	cd $(TMPDIR) && \
-	curl -LO "https://github.com/multiprocessio/dsq/releases/download/$(VERSION)/$(FILE)" && \
-	unzip $(FILE) && \
+	$(eval version := v0.22.0)
+	$(eval file := dsq-$(shell uname -s | awk '{ print tolower($$0) }')-x64-$(version).zip)
+	cd $(tmpdir) && \
+	curl -LO "https://github.com/multiprocessio/dsq/releases/download/$(version)/$(file)" && \
+	unzip $(file) && \
 	sudo install dsq /usr/local/bin
 endif
 
-	rm -r $(TMPDIR)
+	rm -r $(tmpdir)
 
 .PHONY: git-setup
 git-setup: ## Configure Git

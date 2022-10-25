@@ -49,6 +49,7 @@ before-bench: log-rotate restart ## Prepare for a benchmark
 .PHONY: bench
 bench: before-bench ## Run a benchmark. You must specify BENCHMARK_SERVER
 	$(call definedcheck,BENCHMARK_SERVER)
+	sleep 2
 	ssh $(BENCHMARK_SERVER) "cd bench; ./bench"
 
 .PHONY: analyze-nginx
