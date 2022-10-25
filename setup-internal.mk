@@ -86,7 +86,7 @@ ifeq ($(wildcard $(HOME)/.ssh/id_rsa),)
 endif
 
 .PHONY: setup
-setup: place-files git-setup ssh-setup install-tools ## Full setup
+setup: place-files git-setup install-tools ## Full setup
 
 .PHONY: help
 .DEFAULT_GOAL := help
