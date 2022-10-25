@@ -16,7 +16,7 @@ endef
 define definedcheck
 $(eval undefine missing_vars)
 $(foreach v,$(1),$(if $($(v)),,$(eval missing_vars += $(v))))
-$(if $(missing_vars),$(error unset variables: $(missing_vars); see $(HOME)/env.sh),)
+$(if $(missing_vars),$(error [error] unset variables: $(missing_vars); see $(HOME)/env.sh),)
 endef
 
 $(call definedcheck,$(REQUIRED_ENVVARS))

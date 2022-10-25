@@ -27,7 +27,7 @@ definedcheck(){
     done
 
     if [ -n "${missing_vars}" ]; then
-        echo "unset variables: $missing_vars; see $CURDIR/env.sh" 1>&2
+        echo "[error] unset variables: $missing_vars; see $CURDIR/env.sh" 1>&2
         exit 1
     fi
 }
@@ -46,7 +46,7 @@ done
 definedcheck REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO
 
 if ! command -v gh >/dev/null 2>&1; then
-    echo "gh is not installed" 1>&2
+    echo "[error] gh is not installed" 1>&2
     exit 1
 fi
 
@@ -60,7 +60,7 @@ for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
 done
 
 for server in ${SERVERS[@]}; do
-    echo "enter into $server"
+    echo "[info] enter into $server"
 
     REMOTE_HOME="/home/$REMOTE_USER"
     TOOLKIT_DIR="$REMOTE_HOME/isucon-toolkit"
@@ -86,7 +86,7 @@ for server in ${SERVERS[@]}; do
            --title "$server" \
            --allow-write
     else
-        echo "deploy key of $server is already added"
+        echo "[info] deploy key of $server is already added"
     fi
 
     for s in ${SERVERS[@]}; do
@@ -95,5 +95,5 @@ for server in ${SERVERS[@]}; do
         fi
     done
 
-    echo "leave $server"
+    echo "[info] leave $server"
 done

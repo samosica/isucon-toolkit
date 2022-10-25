@@ -14,7 +14,7 @@ endef
 define definedcheck
 $(eval undefine missing_vars)
 $(foreach v,$(1),$(if $($(v)),,$(eval missing_vars += $(v))))
-$(if $(missing_vars),$(error unset variables: $(missing_vars); see $(MAKEFILE_DIR)/env.sh),)
+$(if $(missing_vars),$(error [error] unset variables: $(missing_vars); see $(MAKEFILE_DIR)/env.sh),)
 endef
 
 $(call definedcheck,$(REQUIRED_ENVVARS))
@@ -27,27 +27,27 @@ first:
 	@if [ ! -e $(HOME)/env.sh ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/env.sh $(HOME)/; \
 	else \
-		echo "$(HOME)/env.sh already exists; skip copying"; \
+		echo "[info] $(HOME)/env.sh already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/alp ] || [ $(force) -eq 1 ]; then \
 		cp -r $(MAKEFILE_DIR)/alp $(HOME)/; \
 	else \
-		echo "$(HOME)/alp already exists; skip copying"; \
+		echo "[info] $(HOME)/alp already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/Makefile ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/toolkit.mk $(HOME)/; \
 	else \
-		echo "$(HOME)/Makefile already exists; skip copying"; \
+		echo "[info] $(HOME)/Makefile already exists; skip copying"; \
 	fi
 	@if [ ! -e $(HOME)/sync-all.sh ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/sync-all.sh $(HOME)/; \
 	else \
-		echo "$(HOME)/sync-all.sh already exists; skip copying" \
+		echo "[info] $(HOME)/sync-all.sh already exists; skip copying" \
 	fi
 	@if [ ! -e $(HOME)/sync.sh ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/sync.sh $(HOME)/; \
 	else \
-		echo "$(HOME)/sync.sh already exists; skip copying"; \
+		echo "[info] $(HOME)/sync.sh already exists; skip copying"; \
 	fi
 
 .PHONY: install-tools
