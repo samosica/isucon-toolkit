@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -eu
+
+set -e
+
+CURDIR=$(cd "$(dirname "$0")" && pwd)
 
 usage(){
     cat <<EOF
@@ -13,6 +16,22 @@ EOF
     exit 0
 }
 
+definedcheck(){
+    local missing_vars=()
+    for name in "$@"; do
+        local val="${!name}"
+
+        if [ -z "$val" ]; then
+            missing_vars+=$name
+        fi
+    done
+
+    if [ -n "${missing_vars}" ]; then
+        echo "unset variables: $missing_vars; see $CURDIR/env.sh" 1>&2
+        exit 1
+    fi
+}
+
 force=0
 
 while getopts fh OPT; do
@@ -22,36 +41,16 @@ while getopts fh OPT; do
     esac
 done
 
-CURDIR=$(cd "$(dirname "$0")" && pwd)
-
 . "$CURDIR/env.sh"
 
-if [ -z ${REMOTE_USER+x} ]; then
-    echo "REMOTE_USER is not set" 1>&2
-    exit 1
-fi
-
-if [ -z ${GIT_EMAIL+x} ]; then
-    echo "GIT_EMAIL is not set" 1>&2
-    exit 1
-fi
-
-if [ -z ${GIT_USERNAME+x} ]; then
-    echo "GIT_USERNAME is not set" 1>&2
-    exit 1
-fi
-
-if [ -z ${GITHUB_REPO+x} ]; then
-    echo "GITHUB_REPO is not set" 1>&2
-    exit 1
-fi
+definedcheck REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO
 
 if ! command -v gh >/dev/null 2>&1; then
     echo "gh is not installed" 1>&2
     exit 1
 fi
 
-set -x
+set -ux
 
 TEMPDIR=$(mktemp -d)
 trap "rm -r $TEMPDIR" 0
