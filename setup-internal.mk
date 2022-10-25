@@ -22,8 +22,8 @@ $(call definedcheck,$(REQUIRED_ENVVARS))
 # In some environments, $HOME is not /home/user
 HOME := /home/$(USER)
 
-.PHONY: first
-first:
+.PHONY: place-files
+place-files: ## Place scripts and config files
 	@if [ ! -e $(HOME)/env.sh ] || [ $(force) -eq 1 ]; then \
 		cp $(MAKEFILE_DIR)/env.sh $(HOME)/; \
 	else \
@@ -51,7 +51,7 @@ first:
 	fi
 
 .PHONY: install-tools
-install-tools:
+install-tools: ## Install tools
 	$(eval TMPDIR := $(shell mktemp -d))
 
 # shell function does not start a new shell without `sh -c`
@@ -86,16 +86,21 @@ endif
 	rm -r $(TMPDIR)
 
 .PHONY: git-setup
-git-setup:
+git-setup: ## Configure Git
 	git config --global user.email $(GIT_EMAIL)
 	git config --global user.name $(GIT_USERNAME)
 
 .PHONY: ssh-setup
-ssh-setup:
+ssh-setup: ## Generate SSH key
 	mkdir -p $(HOME)/.ssh
 ifeq ($(wildcard $(HOME)/.ssh/id_rsa),)
 	ssh-keygen -f $(HOME)/.ssh/id_rsa -N ""
 endif
 
 .PHONY: setup
-setup: first git-setup ssh-setup install-tools
+setup: place-files git-setup ssh-setup install-tools ## Full setup
+
+.PHONY: help
+.DEFAULT_GOAL := help
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
