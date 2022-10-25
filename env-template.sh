@@ -27,6 +27,9 @@ SERVERS=()
 # 指定したサーバーの`~/bench/bench`にベンチマーカーを配置する必要があります
 BENCHMARK_SERVER=
 
+# 最初からアクセス可能なサーバー上のユーザー
+BASTION_USER=
+
 # サーバー上で使うユーザー名
 REMOTE_USER=
 
