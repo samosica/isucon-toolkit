@@ -15,6 +15,9 @@ GIT_USERNAME=
 # GITHUB_REPO=account_name/repository_name
 GITHUB_REPO=
 
+# アプリケーションのプログラムや設定ファイルを管理するサーバー上のディレクトリのパス
+REPO_DIR=
+
 # チームメイトのGitHubアカウント
 TEAMMATE_GITHUB_ACCOUNTS=()
 
@@ -40,9 +43,6 @@ REMOTE_USER=
 
 # アプリケーションを動かしているサービスの名前
 SERVICE_NAME=
-
-# アプリケーションのプログラムや設定ファイルを管理しているディレクトリのパス
-REPO_DIR=
 
 # MySQLのユーザー名
 MYSQL_USER=root

@@ -39,7 +39,7 @@ done
 
 . "$CURDIR/env.sh"
 
-definedcheck BASTION_USER REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO
+definedcheck BASTION_USER REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO REPO_DIR
 
 if ! command -v gh >/dev/null 2>&1; then
     echo "[error] gh is not installed" 1>&2
