@@ -8,3 +8,4 @@
 !toolkit.mk
 !sync.sh
 !sync-all.sh
+!ssh-pass-id.sh

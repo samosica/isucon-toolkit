@@ -39,7 +39,7 @@ done
 
 . "$CURDIR/env.sh"
 
-definedcheck BASTION_USER REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO REPO_DIR
+definedcheck REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO REPO_DIR
 
 if ! command -v gh >/dev/null 2>&1; then
     echo "[error] gh is not installed" 1>&2
@@ -53,22 +53,6 @@ trap "rm -r $tempdir" 0
 
 REMOTE_USER_HOME="/home/$REMOTE_USER"
 TOOLKIT_DIR="$REMOTE_USER_HOME/isucon-toolkit"
-
-# Enable access to $REMOTE_USER
-# (Initially, you only have access to $BASTION_USER)
-for server in ${SERVERS[@]}; do
-    target="$BASTION_USER@$server"
-
-    ssh "$target" \
-        "sudo mkdir -p $REMOTE_USER_HOME/.ssh && \
-         sudo chmod 700 $REMOTE_USER_HOME/.ssh"
-    # Copy .ssh/authorized_keys of $BASTION_USER into that of $REMOTE_USER
-    ssh "$target" \
-        "cat /home/$BASTION_USER/.ssh/authorized_keys | \
-         sudo tee -a $REMOTE_USER_HOME/.ssh/authorized_keys >/dev/null"
-    ssh "$target" \
-        "sudo chmod 600 $REMOTE_USER_HOME/.ssh/authorized_keys"
-done
 
 # Retrieve members' SSH keys and send them to each server
 for a in ${TEAMMATE_GITHUB_ACCOUNTS[@]}; do
