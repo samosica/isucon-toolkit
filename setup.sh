@@ -68,6 +68,11 @@ for server in ${SERVERS[@]}; do
 
     target="$REMOTE_USER@$server"
 
+    if [ $(ssh "$target" "test -e $REMOTE_USER_HOME/.setup-lock; echo \$?") -eq 0 ]; then
+        echo "[info] $server is ready; skip setup"
+        continue
+    fi
+
     # Send this toolkit
     ssh "$target" mkdir -p "$TOOLKIT_DIR"
     rsync -av "$CURDIR/" "$target:$TOOLKIT_DIR"
