@@ -4,16 +4,6 @@ set -e
 
 CURDIR=$(cd "$(dirname "$0")" && pwd)
 
-usage(){
-    cat <<EOF
-Usage: $0 [Option]...
-Set up multiple servers at once
-
-Options:
-    -h    help
-EOF
-}
-
 definedcheck(){
     local missing_vars=()
     for name in "$@"; do
@@ -30,6 +20,16 @@ definedcheck(){
     fi
 }
 
+usage(){
+    cat <<EOF
+Usage: $0 [Option]...
+Set up multiple servers at once
+
+Options:
+    -h    help
+EOF
+}
+
 while getopts h OPT; do
     case "$OPT" in
         h) usage; exit 0 ;;
@@ -43,7 +43,18 @@ done
 definedcheck REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO REPO_DIR
 
 if ! command -v gh >/dev/null 2>&1; then
-    echo "[error] gh is not installed" 1>&2
+    printf "\x1b[1;31m[error]\x1b[0m gh is not installed\n" 1>&2
+    exit 1
+fi
+
+if ! gh auth status >/dev/null 2>&1; then
+    # shellcheck disable=SC2016
+    printf '\x1b[1;31m[error]\x1b[0m you are not logged into GitHub; run `gh auth login`\n' 1>&2
+    exit 1
+fi
+
+if ! gh api "repos/$GITHUB_REPO" >/dev/null 2>&1; then
+    printf "\x1b[1;31m[error]\x1b[0m %s: no such repository\n" "$GITHUB_REPO" 1>&2
     exit 1
 fi
 
@@ -53,17 +64,20 @@ tempdir=$(mktemp -d)
 # shellcheck disable=SC2064
 trap "rm -r $tempdir" 0
 
-REMOTE_USER_HOME="/home/$REMOTE_USER"
-TOOLKIT_DIR="$REMOTE_USER_HOME/isucon-toolkit"
-
 # Retrieve members' SSH keys and send them to each server
 for a in "${TEAMMATE_GITHUB_ACCOUNTS[@]}"; do
-    curl "https://github.com/$a.keys" -o "$tempdir/$a.pub"
+    if ! curl --fail "https://github.com/$a.keys" -o "$tempdir/$a.pub"; then
+        printf '\x1b[1;31m[error]\x1b[0m %s: no such account\n' "$a" 1>&2
+        exit 1
+    fi
 
     for server in "${SERVERS[@]}"; do
         ssh-copy-id -f -i "$tempdir/$a.pub" "$REMOTE_USER@$server"
     done
 done
+
+REMOTE_USER_HOME="/home/$REMOTE_USER"
+TOOLKIT_DIR="$REMOTE_USER_HOME/isucon-toolkit"
 
 for server in "${SERVERS[@]}"; do
     echo "[info] enter into $server"

@@ -79,16 +79,17 @@ git-setup: ## Configure Git
 	git config --global user.email $(GIT_EMAIL)
 	git config --global user.name $(GIT_USERNAME)
 # Older versions of Git do not use main branch in default
-ifeq ($(wildcard $(REPO_DIR)/.git),)
-	cd $(REPO_DIR) && \
-	git init --initial-branch=main && \
-	git remote add origin git@github.com:$(GITHUB_REPO).git && \
-	git fetch && \
-	git reset --hard origin/main && \
-	git branch --set-upstream-to=origin/main
-else
-	$(info [info] $(REPO_DIR) is already git-controlled; do nothing)
-endif
+# TODO: (re)move?
+# ifeq ($(wildcard $(REPO_DIR)/.git),)
+# 	cd $(REPO_DIR) && \
+# 	git init --initial-branch=main && \
+# 	git remote add origin git@github.com:$(GITHUB_REPO).git && \
+# 	git fetch && \
+# 	git reset --hard origin/main && \
+# 	git branch --set-upstream-to=origin/main
+# else
+# 	$(info [info] $(REPO_DIR) is already git-controlled; do nothing)
+# endif
 
 .PHONY: ssh-setup
 ssh-setup: ## Generate SSH key
