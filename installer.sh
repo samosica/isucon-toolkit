@@ -14,7 +14,7 @@ if ! command -v pt-query-digest >/dev/null 2>&1; then
 fi
 
 if ! command -v alp >/dev/null 2>&1; then
-	curl -LO https://github.com/tkuchiki/alp/releases/download/v1.0.11/alp_linux_amd64.tar.gz
+	curl -LO https://github.com/tkuchiki/alp/releases/download/v1.0.12/alp_linux_amd64.tar.gz
 	tar xf alp_linux_amd64.tar.gz
 	sudo install alp /usr/local/bin
 fi
