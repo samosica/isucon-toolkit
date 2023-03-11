@@ -1,23 +1,16 @@
 #!/usr/bin/env bash
 
-set -e
+set -eu
 
 CURDIR=$(cd "$(dirname "$0")" && pwd)
+readonly CURDIR
 
-definedcheck(){
-    local missing_vars=()
-    for name in "$@"; do
-        local val="${!name}"
+error(){
+    printf "\x1b[1;31m[error]\x1b[0m %s\n" "$*" 1>&2
+}
 
-        if [ -z "$val" ]; then
-            missing_vars+=("$name")
-        fi
-    done
-
-    if [ -n "${missing_vars[*]}" ]; then
-        echo "[error] unset variables: $missing_vars; see $CURDIR/env.sh" 1>&2
-        exit 1
-    fi
+info(){
+    printf "[info] %s\n" "$*"
 }
 
 usage(){
@@ -30,98 +23,170 @@ Options:
 EOF
 }
 
-while getopts h OPT; do
-    case "$OPT" in
+while getopts h opt; do
+    case "$opt" in
         h) usage; exit 0 ;;
         *) usage; exit 1 ;;
     esac
 done
 
 # shellcheck source=/dev/null
-. "$CURDIR/env.sh"
+source "$CURDIR/env.sh"
 
-definedcheck REMOTE_USER GIT_EMAIL GIT_USERNAME GITHUB_REPO REPO_DIR
+defined_check(){
+    set +u
+    local missing_vars=()
+    local name
+    for name in "$@"; do
+        # indirect expansion
+        local val="${!name}"
 
-if ! command -v gh >/dev/null 2>&1; then
-    printf "\x1b[1;31m[error]\x1b[0m gh is not installed\n" 1>&2
-    exit 1
-fi
-
-if ! gh auth status >/dev/null 2>&1; then
-    # shellcheck disable=SC2016
-    printf '\x1b[1;31m[error]\x1b[0m you are not logged into GitHub; run `gh auth login`\n' 1>&2
-    exit 1
-fi
-
-if ! gh api "repos/$GITHUB_REPO" >/dev/null 2>&1; then
-    printf "\x1b[1;31m[error]\x1b[0m %s: no such repository\n" "$GITHUB_REPO" 1>&2
-    exit 1
-fi
-
-set -ux
-
-tempdir=$(mktemp -d)
-# shellcheck disable=SC2064
-trap "rm -r $tempdir" 0
-
-# Retrieve members' SSH keys and send them to each server
-for a in "${TEAMMATE_GITHUB_ACCOUNTS[@]}"; do
-    if ! curl --fail "https://github.com/$a.keys" -o "$tempdir/$a.pub"; then
-        printf '\x1b[1;31m[error]\x1b[0m %s: no such account\n' "$a" 1>&2
-        exit 1
-    fi
-
-    for server in "${SERVERS[@]}"; do
-        ssh-copy-id -f -i "$tempdir/$a.pub" "$REMOTE_USER@$server"
-    done
-done
-
-REMOTE_USER_HOME="/home/$REMOTE_USER"
-TOOLKIT_DIR="$REMOTE_USER_HOME/isucon-toolkit"
-
-for server in "${SERVERS[@]}"; do
-    echo "[info] enter into $server"
-
-    target="$REMOTE_USER@$server"
-
-    # shellcheck disable=SC2029
-    if [ "$(ssh "$target" "test -e $REMOTE_USER_HOME/.setup-lock; echo \$?")" -eq 0 ]; then
-        echo "[info] $server is ready; skip setup"
-        continue
-    fi
-
-    # Send this toolkit
-    ssh "$target" mkdir -p "$TOOLKIT_DIR"
-    rsync -av "$CURDIR/" "$target:$TOOLKIT_DIR"
-
-    # Generate SSH key
-    ssh "$target" make -f "$TOOLKIT_DIR/setup-internal.mk" ssh-setup
-
-    # Retrieve the SSH key and add it to GitHub and the other servers
-    keyfile="$tempdir/id_rsa_$server.pub"
-    rsync -av "$target:$REMOTE_USER_HOME/.ssh/id_rsa.pub" "$keyfile"
-
-    if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
-        gh repo deploy-key add "$keyfile" \
-            --repo "$GITHUB_REPO" \
-            --title "$server" \
-            --allow-write
-    else
-        echo "[info] deploy key of $server is already added"
-    fi
-
-    for s in "${SERVERS[@]}"; do
-        if [ "$s" != "$server" ]; then
-            ssh-copy-id -f -i "$keyfile" "$REMOTE_USER@$s"
+        if [ -z "$val" ]; then
+            missing_vars+=("$name")
         fi
     done
 
-    # Run setup script
-    # shellcheck disable=SC2029
-    ssh "$target" "echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh"
-    ssh "$target" make -f "$TOOLKIT_DIR/setup-internal.mk" setup
-    # shellcheck disable=SC2029
-    ssh "$target" touch "$REMOTE_USER_HOME/.setup-lock"
+    if [ -n "${missing_vars[*]}" ]; then
+        error "unset variables: $missing_vars; see $CURDIR/env.sh"
+        exit 1
+    fi
+    set -u
+}
 
-    echo "[info] leave $server"
-done
+# Note: It is impossible to check if TEAMMATE_GITHUB_ACCOUNTS and SERVERS are set or not
+#       If you assign the empty array to a variable, Bash recognizes the variable as an unset one
+defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+
+REMOTE_USER_HOME="/home/$REMOTE_USER"
+readonly REMOTE_USER_HOME
+
+distribute_member_ssh_keys(){
+    local -r TEMPDIR=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -r $TEMPDIR" RETURN
+
+    local account
+    for account in "${TEAMMATE_GITHUB_ACCOUNTS[@]}"; do
+        info "download $account's SSH key"
+        if ! curl -s --fail "https://github.com/$account.keys" -o "$TEMPDIR/$account.pub"; then
+            error "$account does not exist or does not have SSH key"
+            exit 1
+        fi
+
+        local server
+        for server in "${SERVERS[@]}"; do
+            info "send $account's SSH key to $server"
+            ssh-copy-id -f -i "$TEMPDIR/$account.pub" "$REMOTE_USER@$server"
+        done
+    done
+}
+
+distribute_server_ssh_keys(){
+    if ! command -v gh >/dev/null 2>&1; then
+        error "gh is not installed"
+        exit 1
+    fi
+
+    if ! gh auth status >/dev/null 2>&1; then
+        # shellcheck disable=SC2016
+        error 'you are not logged into GitHub; run `gh auth login`'
+        exit 1
+    fi
+
+    if ! gh api "repos/$GITHUB_REPO" >/dev/null 2>&1; then
+        error "$GITHUB_REPO: no such repository"
+        exit 1
+    fi
+
+    local -r TEMPDIR=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -r $TEMPDIR" RETURN
+
+    local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "generate $server's SSH key"
+        
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            mkdir -p $REMOTE_USER_HOME/.ssh
+            if ! [ -f $REMOTE_USER_HOME/.ssh/id_ed25519 ]; then
+                ssh-keygen -t ed25519 -f $REMOTE_USER_HOME/.ssh/id_ed25519 -N ''
+            fi
+        "
+
+        local client_keyfile="$TEMPDIR/id_ed25519_$server.pub"
+        rsync -av \
+            "$REMOTE_USER@$server:$SERVER_KEYFILE" \
+            "$client_keyfile"
+
+        info "add $server's SSH key as deploy key"
+        if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
+            gh repo deploy-key add \
+                "$client_keyfile" \
+                --repo "$GITHUB_REPO" \
+                --title "$server" \
+                --allow-write
+        else
+            info "$server's SSH key is already added as deploy key"
+        fi
+
+        local s
+        for s in "${SERVERS[@]}"; do
+            if [ "$s" != "$server" ]; then
+                info "send $server's SSH key to $s"
+                ssh-copy-id -f -i "$client_keyfile" "$REMOTE_USER@$s"
+            fi
+        done
+    done
+}
+
+git_setup(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            git config --global user.email $GIT_EMAIL
+            git config --global user.name $GIT_USERNAME
+        "
+    done
+}
+
+install_apps(){
+    cd "$CURDIR"
+
+    if ! [ -e installer.sh ]; then
+        error "installer.sh does not exist"
+        exit 1
+    fi
+
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "install apps in $server"
+        ssh "$REMOTE_USER@$server" "bash -s" < installer.sh
+    done    
+}
+
+send_toolkit(){
+    cd "$CURDIR"
+
+    local -r TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "send toolkit to $server"
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "mkdir -p $TOOLKIT_DIR"
+        rsync -av alp/ env.sh sync-all.sh sync.sh toolkit.mk toolkit.sh "$REMOTE_USER@$server:$TOOLKIT_DIR/"
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
+            sudo install $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
+        "
+    done
+}
+
+distribute_member_ssh_keys
+distribute_server_ssh_keys
+git_setup
+install_apps
+send_toolkit

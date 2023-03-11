@@ -1,7 +1,8 @@
 # In some environments, $HOME is not /home/user
 HOME := /home/$(USER)
+TOOLKIT_DIR := $(HOME)/.isucon-toolkit
 
-include $(HOME)/env.sh
+include $(TOOLKIT_DIR)/env.sh
 
 define REQUIRED_ENVVARS :=
 SERVICE_NAME
@@ -23,11 +24,11 @@ $(call definedcheck,$(REQUIRED_ENVVARS))
 
 .PHONY: sync
 sync: ## Sync files in this server with remote repository
-	$(HOME)/sync.sh $(REPO_DIR) $(BRANCH)
+	$(TOOLKIT_DIR)/sync.sh $(REPO_DIR) $(BRANCH)
 
 .PHONY: sync-all
 sync-all: ## Sync files in all servers with remote repository
-	$(HOME)/sync-all.sh $(REPO_DIR) $(BRANCH)
+	$(TOOLKIT_DIR)/sync-all.sh $(REPO_DIR) $(BRANCH)
 
 .PHONY: log-rotate
 log-rotate: ## Log rotate
@@ -53,13 +54,13 @@ bench: before-bench ## Run a benchmark. You must specify BENCHMARK_SERVER
 	ssh $(BENCHMARK_SERVER) "cd bench; ./bench"
 
 .PHONY: analyze-nginx
-analyze-nginx: $(HOME)/alp/config.yml ## Analyze a Nginx log
+analyze-nginx: $(TOOLKIT_DIR)/alp/config.yml ## Analyze a Nginx log
 	mkdir -p $(STATS_DIR)
 
 	@if sudo [ -e $(NGINX_ACCESS_LOG) ]; then \
 		sudo alp ltsv \
 			--file $(NGINX_ACCESS_LOG) \
-			--config $(HOME)/alp/config.yml | \
+			--config $(TOOLKIT_DIR)/alp/config.yml | \
 		tee $(STATS_DIR)/nginx.log; \
 	fi
 
