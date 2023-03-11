@@ -3,9 +3,10 @@
 !alp
 !alp/config.yml
 !setup.sh
-!setup-internal.mk
+!installer.sh
 !env-template.sh
 !toolkit.mk
+!toolkit.sh
 !sync.sh
 !sync-all.sh
 !ssh-pass-id.sh
