@@ -36,13 +36,17 @@ log-rotate: ## Log rotate
 	sudo nginx -s reopen
 	sudo mysqladmin -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) flush-logs
 
+define restart-service
+$(if $(shell systemctl list-unit-files "$(1)" | grep "$(1)"),sudo systemctl restart "$(1)",@echo "[info] $(1) does not exist")
+endef
+
 .PHONY: restart
 restart: ## Restart the application
-	sudo systemctl restart nginx
-	sudo systemctl restart mysql
-	sudo systemctl restart redis
+	$(call restart-service,nginx.service)
+	$(call restart-service,mysql.service)
+	$(call restart-service,redis.service)
 	sudo systemctl daemon-reload
-	sudo systemctl restart $(SERVICE_NAME)
+	$(call restart-service,$(SERVICE_NAME))
 
 .PHONY: before-bench
 before-bench: log-rotate restart ## Prepare for a benchmark
