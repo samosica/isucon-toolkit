@@ -45,6 +45,7 @@ restart: ## Restart the application
 	$(call restart-service,nginx.service)
 	$(call restart-service,mysql.service)
 	$(call restart-service,redis.service)
+	# cd $(REPO_DIR)/go && go build -o $(subst .service,,$(SERVICE_NAME))
 	sudo systemctl daemon-reload
 	$(call restart-service,$(SERVICE_NAME))
 
