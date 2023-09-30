@@ -3,7 +3,17 @@ sort: sum
 reverse: true
 output: count,uri,sum,max,avg
 
+# 最初にマッチした正規表現が使われるので注意 (マッチした中で最長のものではない)
+# そのため、同じ prefix を持つ正規表現を書くときは
+# - 長いものから順に書くか
+# - `^...$`で囲うこと
+# また、UUID は \w+ (= [a-zA-Z0-9_]+) でマッチしないので注意
+# 加えて、`.+` だと `/` にマッチしてしまうので注意
+# 代わりに [a-zA-Z0-9_-]+ などを使うこと
 matching_groups:
+# - ^/api/isu/[a-zA-Z0-9_-]+$
+# - ^/api/isu/[a-zA-Z0-9_-]+/icon$
+# - ^/api/isu/[a-zA-Z0-9_-]+/graph$
 # - /api/player/competition/\w+/ranking
 # - /api/player/player/\w+
 # - /api/organizer/competition/\w+/score
