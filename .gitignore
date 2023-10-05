@@ -10,3 +10,5 @@
 !sync.sh
 !sync-all.sh
 !ssh-pass-id.sh
+!pt-query-digest
+!pt-query-digest.conf
