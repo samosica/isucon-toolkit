@@ -37,3 +37,7 @@ if ! command -v dsq >/dev/null 2>&1; then
     unzip "$FILE"
     sudo install dsq /usr/local/bin
 fi
+
+if ! command -v tree >/dev/null 2>&1; then
+    sudo apt install -y tree
+fi
