@@ -42,6 +42,9 @@ fi
 
 set -ux
 
+# replace private key path with public key one
+identity_file=${identity_file%.pub}.pub
+
 tempfile=$(ssh "$intermediate" mktemp)
 rsync "$identity_file" "$intermediate:$tempfile"
 ssh "$intermediate" bash <<EOF
