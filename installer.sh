@@ -41,3 +41,7 @@ fi
 if ! command -v tree >/dev/null 2>&1; then
     sudo apt install -y tree
 fi
+
+if ! command -v graphviz >/dev/null 2>&1; then
+    sudo apt install -y graphviz
+fi
