@@ -9,6 +9,8 @@ trap "rm -r $TEMPDIR" 0
 
 cd "$TEMPDIR" || exit 1
 
+sudo apt update
+
 if ! command -v pt-query-digest >/dev/null 2>&1; then
     sudo apt install -y percona-toolkit
 fi
