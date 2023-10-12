@@ -40,8 +40,8 @@ ISUCONにおいて初動を速くしたり、何度もやる動作を簡単に�
 `isutool`コマンドを使います。このコマンドは以下のサブコマンドを持ちます。
 
 - analyze: MySQL、Nginx、SQLiteのログを解析します。
-- analyze-mysql: MySQLのログを解析します。
-- analyze-nginx: Nginxのログを解析します。内部ではalpが使われています。設定ファイルは`~/alp/config.yml`にあります。
+- analyze-mysql: MySQLのログを解析します。設定ファイルは`~/.isucon-toolkit/pt-query-digest/pt-query-digest.conf`にあります。
+- analyze-nginx: Nginxのログを解析します。内部ではalpが使われています。設定ファイルは`~/.isucon-toolkit/alp/config.yml`にあります。
 - analyze-sqlite: SQLiteのログを解析します。内部ではdsqが使われています。dsqが使うSQL文は適宜変更してください。
 - before-bench: ログロテートとシステムの再起動を行ないます。
 - bench: ベンチマーカーを動かします。使うためには`env.sh`の`BENCHMARK_SERVER`でベンチマークサーバーを指定し、そのサーバーにおいて`cd ~/bench; ./bench`を実行することでベンチマーカーが動作する必要があります。**特に`bench`は引数なしで実行されるため、サーバーのアドレスなどが引数として必要な場合はオリジナルのベンチマーカーの名前を`bench-orig`などに変更し、それを引数付きで呼び出すスクリプトを`bench`としてください。**
