@@ -142,12 +142,27 @@ distribute_server_ssh_keys(){
 }
 
 git_setup(){
+    local -r TEMPDIR=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -rf $TEMPDIR" RETURN
+
+    local -r DOTGIT="$TEMPDIR/.git"
+    gh repo clone "$GITHUB_REPO" "$DOTGIT" -- --bare
+
     local server
     for server in "${SERVERS[@]}"; do
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             git config --global user.email $GIT_EMAIL
             git config --global user.name $GIT_USERNAME
+        "
+
+        rsync -av "$DOTGIT" "$REMOTE_USER@$server:$REPO_DIR"
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            cd $REPO_DIR
+            git config core.bare false
+            git restore --staged --worktree . || true
         "
     done
 }
