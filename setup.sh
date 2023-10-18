@@ -191,7 +191,7 @@ send_toolkit(){
         info "send toolkit to $server"
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "mkdir -p $TOOLKIT_DIR"
-        rsync -av alp env.sh sync-all.sh sync.sh toolkit.mk toolkit.sh "$REMOTE_USER@$server:$TOOLKIT_DIR/"
+        rsync -av alp pt-query-digest env.sh sync-all.sh sync.sh toolkit.mk toolkit.sh "$REMOTE_USER@$server:$TOOLKIT_DIR/"
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
