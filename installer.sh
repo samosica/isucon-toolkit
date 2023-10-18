@@ -32,9 +32,8 @@ if ! command -v unzip >/dev/null 2>&1; then
 fi
 
 if ! command -v dsq >/dev/null 2>&1; then
-    readonly VERSION="v0.23.0"
+    VERSION="v0.23.0"
     FILE="dsq-$(uname -s | awk '{ print tolower($0) }')-x64-$VERSION.zip"
-    readonly FILE
     curl -LO "https://github.com/multiprocessio/dsq/releases/download/$VERSION/$FILE"
     unzip "$FILE"
     sudo install dsq /usr/local/bin
