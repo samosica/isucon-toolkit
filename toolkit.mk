@@ -75,7 +75,8 @@ analyze-sqlite: ## Analyze a SQLite log
 	mkdir -p $(STATS_DIR)
 	# change this SQL statement
 	@if sudo [ -e $(SQLITE_TRACE_LOG) ]; then \
-		dsq --pretty $(SQLITE_TRACE_LOG) "SELECT statement, COUNT(*) AS count, AVG(query_time) AS avg FROM {} GROUP BY statement ORDER BY count DESC" | \
+		# WHERE statement NOT LIKE 'INSERT%' AND statement NOT LIKE '% IN %'
+		dsq --pretty $(SQLITE_TRACE_LOG) "SELECT statement, COUNT(*) AS count, SUM(query_time) AS sum, AVG(query_time) AS avg FROM {} GROUP BY statement ORDER BY sum DESC | \
 		tee $(STATS_DIR)/sqlite.log; \
 	fi
 
