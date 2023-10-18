@@ -141,6 +141,20 @@ distribute_server_ssh_keys(){
     done
 }
 
+set_timezone(){
+    info "set timezone"
+
+    local -r TIMEZONE="Asia/Tokyo"
+    local server
+    for server in "${SERVERS[@]}"; do
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            sudo timedatectl set-timezone $TIMEZONE
+            timedatectl
+        "
+    done
+}
+
 git_setup(){
     local -r TEMPDIR=$(mktemp -d)
     # shellcheck disable=SC2064
@@ -202,6 +216,7 @@ send_toolkit(){
 
 distribute_member_ssh_keys
 distribute_server_ssh_keys
+set_timezone
 git_setup
 install_apps
 send_toolkit
