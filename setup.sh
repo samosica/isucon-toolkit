@@ -172,10 +172,15 @@ git_setup(){
         "
 
         rsync -av "$DOTGIT" "$REMOTE_USER@$server:$REPO_DIR"
+        # core.logAllRefUpdates: reflog を有効にする
+        # remote.origin.fetch: リモートの branch とローカルの origin/branch を対応付ける
+        # remote.origin.fetch を設定しないと git fetch でリモートの変更が反映されず、git checkout branch なども失敗する
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             cd $REPO_DIR
             git config core.bare false
+            git config core.logAllRefUpdates true
+            git config remote.origin.fetch '+refs/heads/*:refs/heads/origin/*'
             git restore --staged --worktree . || true
         "
     done
