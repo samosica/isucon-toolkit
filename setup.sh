@@ -15,20 +15,30 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [Option]...
+Usage: $0 [Option]... --authkey AUTHKEY
 Set up multiple servers at once
 
 Options:
-    -h    help
+    -h, --help        help
+    --authkey         specify Tailscale auth key; use reusable key when setting multiple servers up
 EOF
 }
 
-while getopts h opt; do
-    case "$opt" in
-        h) usage; exit 0 ;;
-        *) usage; exit 1 ;;
-    esac
-done
+read_args(){
+    while [ $# -ge 1 ]; do
+        case "$1" in
+            -h | --help) usage; exit 0 ;;
+            --authkey)
+                [ $# -ge 2 ] || { usage && exit 1; }
+                TAILSCALE_AUTHKEY=$2
+                shift 2
+        esac
+    done
+
+    readonly TAILSCALE_AUTHKEY
+}
+
+read_args "$@"
 
 # shellcheck source=/dev/null
 source "$CURDIR/env.sh"
@@ -47,7 +57,7 @@ defined_check(){
     done
 
     if [ -n "${missing_vars[*]}" ]; then
-        error "unset variables: $missing_vars; see $CURDIR/env.sh"
+        error "unset variables: $missing_vars; confirm the arguments passed and $CURDIR/env.sh"
         exit 1
     fi
     set -u
@@ -55,7 +65,7 @@ defined_check(){
 
 # Note: It is impossible to check if TEAMMATE_GITHUB_ACCOUNTS and SERVERS are set or not
 #       If you assign the empty array to a variable, Bash recognizes the variable as an unset one
-defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+defined_check TAILSCALE_AUTHKEY GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
 
 REMOTE_USER_HOME="/home/$REMOTE_USER"
 readonly REMOTE_USER_HOME
@@ -219,9 +229,19 @@ send_toolkit(){
     done
 }
 
+start_tailscale(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "start Tailscale in $server"
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "sudo tailscale up --ssh --hostname $server --authkey $TAILSCALE_AUTHKEY"
+    done
+}
+
 distribute_member_ssh_keys
 distribute_server_ssh_keys
 set_timezone
 git_setup
 install_apps
 send_toolkit
+start_tailscale
