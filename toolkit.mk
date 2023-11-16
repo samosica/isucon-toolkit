@@ -76,7 +76,8 @@ analyze-sqlite: ## Analyze a SQLite log
 	# change this SQL statement
 	@if sudo [ -e $(SQLITE_TRACE_LOG) ]; then \
 		# WHERE statement NOT LIKE 'INSERT%' AND statement NOT LIKE '% IN %'
-		dsq --pretty $(SQLITE_TRACE_LOG) "SELECT statement, COUNT(*) AS count, SUM(query_time) AS sum, AVG(query_time) AS avg FROM {} GROUP BY statement ORDER BY sum DESC | \
+		cat $(SQLITE_TRACE_LOG) | \
+		duckdb -c "SELECT statement, COUNT(*) AS count, SUM(query_time) AS sum, AVG(query_time) AS avg FROM read_json_auto('/dev/stdin') GROUP BY statement ORDER BY sum DESC" | \
 		tee $(STATS_DIR)/sqlite.log; \
 	fi
 
