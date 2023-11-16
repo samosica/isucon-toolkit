@@ -52,3 +52,7 @@ if ! command -v tbls >/dev/null 2>&1; then
     curl -o tbls.deb -L https://github.com/k1LoW/tbls/releases/download/v$TBLS_VERSION/tbls_$TBLS_VERSION-1_amd64.deb
     sudo dpkg -i tbls.deb
 fi
+
+if ! command -v tailscale >/dev/null 2>&1; then
+    curl -fsSL https://tailscale.com/install.sh | sh
+fi
