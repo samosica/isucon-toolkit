@@ -16,7 +16,7 @@ if ! command -v pt-query-digest >/dev/null 2>&1; then
 fi
 
 if ! command -v alp >/dev/null 2>&1; then
-	curl -LO https://github.com/tkuchiki/alp/releases/download/v1.0.12/alp_linux_amd64.tar.gz
+	curl -LO https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.tar.gz
 	tar xf alp_linux_amd64.tar.gz
 	sudo install alp /usr/local/bin
 fi
@@ -53,4 +53,17 @@ fi
 
 if ! command -v tailscale >/dev/null 2>&1; then
     curl -fsSL https://tailscale.com/install.sh | sh
+fi
+
+if ! command -v slp >/dev/null 2>&1; then
+	curl -LO https://github.com/tkuchiki/slp/releases/download/v0.2.0/slp_linux_amd64.tar.gz
+	tar xf slp_linux_amd64.tar.gz
+	sudo install slp /usr/local/bin
+fi
+
+if ! command -v pprotein >/dev/null 2>&1; then
+    VERSION=1.2.2
+    curl -LO "https://github.com/kaz/pprotein/releases/download/$VERSION/pprotein_${VERSION}_linux_amd64.tar.gz"
+    tar xf "pprotein_${VERSION}_linux_amd64.tar.gz"
+    sudo cp pprotein pprotein-agent /usr/local/bin
 fi
