@@ -31,12 +31,10 @@ if ! command -v unzip >/dev/null 2>&1; then
     sudo apt install -y unzip
 fi
 
-if ! command -v dsq >/dev/null 2>&1; then
-    VERSION="v0.23.0"
-    FILE="dsq-$(uname -s | awk '{ print tolower($0) }')-x64-$VERSION.zip"
-    curl -LO "https://github.com/multiprocessio/dsq/releases/download/$VERSION/$FILE"
-    unzip "$FILE"
-    sudo install dsq /usr/local/bin
+if ! command -v duckdb >/dev/null 2>&1; then
+    curl -LO https://github.com/duckdb/duckdb/releases/download/v0.9.2/duckdb_cli-linux-amd64.zip
+    unzip duckdb_cli-linux-amd64.zip
+    sudo install duckdb /usr/local/bin
 fi
 
 if ! command -v tree >/dev/null 2>&1; then
