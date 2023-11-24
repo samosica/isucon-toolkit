@@ -63,7 +63,7 @@ fi
 
 if ! command -v pprotein >/dev/null 2>&1; then
     VERSION=1.2.2
-    curl -LO "https://github.com/kaz/pprotein/releases/download/$VERSION/pprotein_${VERSION}_linux_amd64.tar.gz"
+    curl -LO "https://github.com/kaz/pprotein/releases/download/v$VERSION/pprotein_${VERSION}_linux_amd64.tar.gz"
     tar xf "pprotein_${VERSION}_linux_amd64.tar.gz"
     sudo cp pprotein pprotein-agent /usr/local/bin
 fi
