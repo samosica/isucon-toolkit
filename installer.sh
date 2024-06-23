@@ -67,3 +67,11 @@ if ! command -v pprotein >/dev/null 2>&1; then
     tar xf "pprotein_${VERSION}_linux_amd64.tar.gz"
     sudo cp pprotein pprotein-agent /usr/local/bin
 fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+    sudo apt install -y python3
+fi
+
+if ! python3 -m pip >/dev/null 2>&1; then
+    sudo apt install -y python3-pip
+fi
