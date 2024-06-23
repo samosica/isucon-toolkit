@@ -15,7 +15,7 @@ ISUCONにおいて初動を速くしたり、何度もやる動作を簡単に�
 2. `read -r AUTHKEY`を実行し、(1)で作成した auth key を指定する。
 3. `cp env-template.sh env.sh`を実行する。
 4. `env.sh`を編集する。`env.sh`にはセットアップに関する設定とコマンドに関する設定がありますが、この時点ではセットアップに関する設定のみが必須です。
-5. `setup.sh --authkey $AUTHKEY`を実行する。
+5. `setup.sh --authkey $AUTHKEY`を実行する。`env.sh`のパスを自由に指定したいときは`--envfile ENVFILE`を使用してください。
 6. `env.sh`の残りの設定を行なう。
 
 最初からSSHできるユーザー名と大会で指定されたユーザー名が異なる場合、以下のスクリプトをすべてのサーバーについて実行してください。
