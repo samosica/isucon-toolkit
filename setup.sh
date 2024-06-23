@@ -15,7 +15,7 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] --authkey AUTHKEY [--envfile ENVFILE]
+Usage: $0 [-h | --help] [--authkey AUTHKEY] [--envfile ENVFILE]
 Set up multiple servers at once
 
 Options:
@@ -73,7 +73,7 @@ defined_check(){
 
 # Note: It is impossible to check if TEAMMATE_GITHUB_ACCOUNTS and SERVERS are set or not
 #       If you assign the empty array to a variable, Bash recognizes the variable as an unset one
-defined_check TAILSCALE_AUTHKEY GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
 
 REMOTE_USER_HOME="/home/$REMOTE_USER"
 readonly REMOTE_USER_HOME
@@ -239,12 +239,18 @@ send_toolkit(){
 }
 
 start_tailscale(){
-    local server
-    for server in "${SERVERS[@]}"; do
-        info "start Tailscale in $server"
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "sudo tailscale up --ssh --hostname $server --authkey $TAILSCALE_AUTHKEY"
-    done
+    set +u
+    if [ -z "$TAILSCALE_AUTHKEY" ]; then
+        info "skip starting Tailscale"
+    else
+        local server
+        for server in "${SERVERS[@]}"; do
+            info "start Tailscale in $server"
+            # shellcheck disable=SC2029
+            ssh "$REMOTE_USER@$server" "sudo tailscale up --ssh --hostname $server --authkey $TAILSCALE_AUTHKEY"
+        done
+    fi
+    set -u
 }
 
 distribute_member_ssh_keys
