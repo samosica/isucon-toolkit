@@ -15,33 +15,41 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [Option]... --authkey AUTHKEY
+Usage: $0 [-h | --help] [--authkey AUTHKEY] [--envfile ENVFILE]
 Set up multiple servers at once
 
 Options:
     -h, --help        help
     --authkey         specify Tailscale auth key; use reusable key when setting multiple servers up
+    --envfile         specify env file (default: $(dirname "$0")/env.sh)
 EOF
 }
 
 read_args(){
+    ENVFILE="$CURDIR/env.sh"
+
     while [ $# -ge 1 ]; do
         case "$1" in
             -h | --help) usage; exit 0 ;;
             --authkey)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 TAILSCALE_AUTHKEY=$2
-                shift 2
+                shift 2 ;;
+            --envfile)
+                [ $# -ge 2 ] || { usage && exit 1; }
+                ENVFILE=$2
+                shift 2 ;;
         esac
     done
 
     readonly TAILSCALE_AUTHKEY
+    readonly ENVFILE
 }
 
 read_args "$@"
 
 # shellcheck source=/dev/null
-source "$CURDIR/env.sh"
+source "$ENVFILE"
 
 defined_check(){
     set +u
@@ -57,7 +65,7 @@ defined_check(){
     done
 
     if [ -n "${missing_vars[*]}" ]; then
-        error "unset variables: $missing_vars; confirm the arguments passed and $CURDIR/env.sh"
+        error "unset variables: $missing_vars; confirm the arguments passed and $ENVFILE"
         exit 1
     fi
     set -u
@@ -65,7 +73,7 @@ defined_check(){
 
 # Note: It is impossible to check if TEAMMATE_GITHUB_ACCOUNTS and SERVERS are set or not
 #       If you assign the empty array to a variable, Bash recognizes the variable as an unset one
-defined_check TAILSCALE_AUTHKEY GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
 
 REMOTE_USER_HOME="/home/$REMOTE_USER"
 readonly REMOTE_USER_HOME
@@ -220,7 +228,8 @@ send_toolkit(){
         info "send toolkit to $server"
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "mkdir -p $TOOLKIT_DIR"
-        rsync -av alp pt-query-digest env.sh sync-all.sh sync.sh toolkit.mk toolkit.sh "$REMOTE_USER@$server:$TOOLKIT_DIR/"
+        rsync -av alp pt-query-digest sync-all.sh sync.sh toolkit.mk toolkit.sh "$REMOTE_USER@$server:$TOOLKIT_DIR/"
+        rsync -av "$ENVFILE" "$REMOTE_USER@$server:$TOOLKIT_DIR/"
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
@@ -230,12 +239,18 @@ send_toolkit(){
 }
 
 start_tailscale(){
-    local server
-    for server in "${SERVERS[@]}"; do
-        info "start Tailscale in $server"
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "sudo tailscale up --ssh --hostname $server --authkey $TAILSCALE_AUTHKEY"
-    done
+    set +u
+    if [ -z "$TAILSCALE_AUTHKEY" ]; then
+        info "skip starting Tailscale"
+    else
+        local server
+        for server in "${SERVERS[@]}"; do
+            info "start Tailscale in $server"
+            # shellcheck disable=SC2029
+            ssh "$REMOTE_USER@$server" "sudo tailscale up --ssh --hostname $server --authkey $TAILSCALE_AUTHKEY"
+        done
+    fi
+    set -u
 }
 
 distribute_member_ssh_keys
