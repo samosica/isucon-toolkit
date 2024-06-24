@@ -15,11 +15,12 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] [--authkey AUTHKEY] [--envfile ENVFILE]
+Usage: $0 [-h | --help] [-o KEY=VALUE] [--authkey AUTHKEY] [--envfile ENVFILE]
 Set up multiple servers at once
 
 Options:
     -h, --help        help
+    -o                specify SSH option; see ssh_config(5)    
     --authkey         specify Tailscale auth key; use reusable key when setting multiple servers up
     --envfile         specify env file (default: $(dirname "$0")/env.sh)
 EOF
@@ -27,10 +28,15 @@ EOF
 
 read_args(){
     ENVFILE="$CURDIR/env.sh"
+    SSH_OPTIONS=()
 
     while [ $# -ge 1 ]; do
         case "$1" in
             -h | --help) usage; exit 0 ;;
+            -o)
+                [ $# -ge 2 ] || { usage && exit 1; }
+                SSH_OPTIONS+=("$1" "$2")
+                shift 2 ;;            
             --authkey)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 TAILSCALE_AUTHKEY=$2
@@ -38,13 +44,24 @@ read_args(){
             --envfile)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 ENVFILE=$2
-                shift 2 ;;
+                shift 2 ;;           
             *) usage; exit 1 ;;
         esac
     done
 
     readonly TAILSCALE_AUTHKEY
     readonly ENVFILE
+    readonly SSH_OPTIONS
+}
+
+# override ssh-copy-id with SSH_OPTIONS
+ssh-copy-id(){
+    command ssh-copy-id "${SSH_OPTIONS[@]}" "$@"
+}
+
+# override ssh with SSH_OPTIONS
+ssh(){
+    command ssh "${SSH_OPTIONS[@]}" "$@"
 }
 
 read_args "$@"
