@@ -39,6 +39,7 @@ read_args(){
                 [ $# -ge 2 ] || { usage && exit 1; }
                 ENVFILE=$2
                 shift 2 ;;
+            *) usage; exit 1 ;;
         esac
     done
 
