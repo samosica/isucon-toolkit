@@ -35,6 +35,11 @@ log-rotate: ## Log rotate
 	sudo rm -f $(NGINX_ACCESS_LOG) $(MYSQL_SLOW_LOG) $(SQLITE_TRACE_LOG)
 	sudo nginx -s reopen
 	sudo mysqladmin -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) flush-logs
+	: # this is a workaround for pprotein
+	sudo chmod +rx /var/log/mysql
+	if sudo [ -e /var/log/mysql/mysql-slow.log ]; then \
+        sudo chmod +r /var/log/mysql/mysql-slow.log; \
+    fi
 
 define restart-service
 $(if $(shell systemctl list-unit-files "$(1)" | grep "$(1)"),sudo systemctl restart "$(1)",@echo "[info] $(1) does not exist")
