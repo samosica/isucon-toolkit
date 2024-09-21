@@ -11,6 +11,16 @@ output: count,uri,sum,max,avg
 # 加えて、`.+` だと `/` にマッチしてしまうので注意
 # 代わりに [a-zA-Z0-9_-]+ などを使うこと
 matching_groups:
+# ISUCON 11
+# - /api/isu/[a-zA-Z0-9_-]+/icon
+# - /api/isu/[a-zA-Z0-9_-]+/graph
+# - /api/isu/[a-zA-Z0-9_-]+
+# - /api/condition/[a-zA-Z0-9_-]+
+# - /isu/[a-zA-Z0-9_-]+/graph
+# - /isu/[a-zA-Z0-9_-]+/condition
+# - /isu/[a-zA-Z0-9_-]+
+
+# ISUCON 12
 # - ^/api/isu/[a-zA-Z0-9_-]+$
 # - ^/api/isu/[a-zA-Z0-9_-]+/icon$
 # - ^/api/isu/[a-zA-Z0-9_-]+/graph$
@@ -19,3 +29,20 @@ matching_groups:
 # - /api/organizer/competition/\w+/score
 # - /api/organizer/competition/\w+/finish
 # - /api/organizer/player/\w+/disqualified
+
+# ISUCON 13
+# - ^/api/user/[a-zA-Z0-9_-]+/theme$
+# - ^/api/user/[a-zA-Z0-9_-]+/livestream$
+# - ^/api/user/[a-zA-Z0-9_-]+/statistics$
+# - ^/api/user/[a-zA-Z0-9_-]+/icon$
+# - ^/api/user/[a-zA-Z0-9_-]+$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/livecomment/[a-zA-Z0-9_-]+/report$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/livecomment$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/reaction$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/report$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/ngwords$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/moderate$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/enter$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/exit$
+# - ^/api/livestream/[a-zA-Z0-9_-]+/statistics$
+# - ^/api/livestream/[a-zA-Z0-9_-]+$
