@@ -7,8 +7,11 @@
 !env-template.sh
 !toolkit.mk
 !toolkit.sh
+!toolkit-v1.sh
 !sync.sh
 !sync-all.sh
 !ssh-pass-id.sh
 !pt-query-digest
 !pt-query-digest.conf
+!commands
+!commands/*.sh
