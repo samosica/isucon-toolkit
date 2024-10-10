@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eux
+set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 readonly SCRIPT_DIR
@@ -18,21 +18,46 @@ Run a benchmark. You must specify BENCHMARK_SERVER
 
 Options:
     -h, --help            help
+    -v                    show commands to be executed
 EOF
 }
 
 read-args(){
+    VERBOSE=
     while [ $# -ge 1 ]; do
         case $1 in
             -h | --help) usage; exit 0;;
+            -v) VERBOSE=1; shift 1;;
             *) usage; exit 1;;
         esac
     done
+
+    readonly VERBOSE
+    if [ -n "$VERBOSE" ]; then
+        set -x
+    fi
+}
+
+run-command(){
+    { set +x; } 2>/dev/null
+
+    local command="$SCRIPT_DIR/$1.sh"
+    shift 1
+    local args=("$@")
+
+    if ! [ -e "$command" ]; then
+        error "no such script: $command"
+        exit 1
+    fi
+    $command ${VERBOSE:+-v} "${args[@]}"
+
+    if [ -n "$VERBOSE" ]; then
+        set -x
+    fi    
 }
 
 read-args "$@"
-
-"$SCRIPT_DIR/before-bench.sh"
+run-command before-bench
 
 if [ -z "${BENCHMARK_SERVER+x}" ]; then
     error "unset variable: BENCHMARK_SERVER"
