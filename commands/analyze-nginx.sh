@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eux
+set -eu
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 readonly SCRIPT_DIR
@@ -18,16 +18,24 @@ Analyze a Nginx log
 
 Options:
     -h, --help            help
+    -v                    show commands to be executed    
 EOF
 }
 
 read-args(){
+    VERBOSE=
     while [ $# -ge 1 ]; do
         case $1 in
             -h | --help) usage; exit 0;;
+            -v) VERBOSE=1; shift 1;;
             *) usage; exit 1;;
         esac
     done
+
+    readonly VERBOSE
+    if [ -n "$VERBOSE" ]; then
+        set -x
+    fi        
 }
 
 read-args "$@"
