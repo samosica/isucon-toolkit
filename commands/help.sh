@@ -35,6 +35,7 @@ read-args "$@"
 cd "$SCRIPT_DIR"
 for command in *.sh; do
     commandName=${command%.*}
-    commandDesc=$("./${command}" -h | sed -n 2p)
+    # do not pass -h instead of --help
+    commandDesc=$("./${command}" --help | sed -n 2p)
     printf "%-18s    %s\n" "$commandName" "$commandDesc"
 done

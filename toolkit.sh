@@ -19,7 +19,8 @@ EOF
         commandName=$(basename "$command")
         commandName=${commandName%.*}
         local commandDesc
-        commandDesc=$("${command}" -h | sed -n 2p)
+        # do not pass -h instead of --help
+        commandDesc=$("${command}" --help | sed -n 2p)
         printf "    %-18s    %s\n" "$commandName" "$commandDesc"
     done
 
