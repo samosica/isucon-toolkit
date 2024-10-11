@@ -75,3 +75,7 @@ fi
 if ! python3 -m pip >/dev/null 2>&1; then
     sudo apt install -y python3-pip
 fi
+
+if ! command -v mycli >/dev/null 2>&1; then
+    sudo apt install -y mycli
+fi
