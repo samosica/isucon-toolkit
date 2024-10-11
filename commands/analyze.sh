@@ -13,7 +13,7 @@ usage(){
     readonly COMMAND_NAME
 
     cat <<EOF
-Usage: isutool $COMMAND_NAME [-h | --help] (mysql | nginx | sqlite)...
+Usage: isutool $COMMAND_NAME [-h | --help] [-v] (mysql | nginx | sqlite)...
 Analyze logs
 With no arguments, analyze all logs
 

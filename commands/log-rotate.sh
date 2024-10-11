@@ -13,7 +13,7 @@ usage(){
     readonly COMMAND_NAME
 
     cat <<EOF
-Usage: isutool $COMMAND_NAME [-h | --help]
+Usage: isutool $COMMAND_NAME [-h | --help] [-v]
 Log rotate
 
 Options:
