@@ -14,7 +14,7 @@ usage(){
 
     cat <<EOF
 Usage: isutool $COMMAND_NAME [-h | --help] [-v]
-Restart ISUCON application
+Build ISUCON application
 
 Options:
     -h, --help            help
@@ -35,9 +35,10 @@ read-args(){
     readonly VERBOSE
     if [ -n "$VERBOSE" ]; then
         set -x
-    fi    
+    fi
 }
 
+# shellcheck disable=SC2317
 run-command(){
     { set +x; } 2>/dev/null
 
@@ -57,19 +58,15 @@ run-command(){
 }
 
 read-args "$@"
-run-command build
 
-restart-service(){
-    if systemctl list-unit-files "$1" >/dev/null 2>&1; then
-        sudo systemctl restart "$1"
-    else
-        error "no such service: $1"
-        exit 1
-    fi
+# shellcheck disable=SC2317
+isucon13(){
+    cd "$REPO_DIR/go"
+    make build
 }
 
-restart-service nginx.service
-restart-service mysql.service
-restart-service redis.service
-sudo systemctl daemon-reload
-restart-service "$SERVICE_NAME"
+error "build command is not implemented yet; run isutool edit-command build"
+exit 1
+
+# cd "$REPO_DIR/go"
+# go build -o $(subst .service,,$(SERVICE_NAME))
