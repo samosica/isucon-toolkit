@@ -62,7 +62,7 @@ check-envvars(){
 
     local envvar
     for envvar in SERVICE_NAME REPO_DIR MYSQL_USER MYSQL_PASSWORD NGINX_ACCESS_LOG MYSQL_SLOW_LOG STATS_DIR; do
-        if ! printenv "$envvar" >/dev/null ; then
+        if ! printenv "$envvar" >/dev/null || [ -z "${!envvar}" ]; then
             missingEnvvars+=("$envvar")
         fi
     done
@@ -75,7 +75,16 @@ check-envvars(){
 
 read-args "$@"
 load-envvars
-check-envvars
+
+CHECK_ENVVARS=1
+for specialCommand in create-command edit-command edit-config help; do
+    if [ "$COMMAND" = "$specialCommand" ]; then
+        CHECK_ENVVARS=
+    fi
+done
+if [ -n "$CHECK_ENVVARS" ]; then
+    check-envvars
+fi
 
 readonly COMMAND_PATH=$SCRIPT_DIR/commands/$COMMAND.sh
 if ! [ -e "$COMMAND_PATH" ]; then
