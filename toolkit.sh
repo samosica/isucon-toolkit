@@ -52,8 +52,7 @@ load-envvars(){
     . "$SCRIPT_DIR/env.sh"
     set +a
 
-    # Note: do not use $HOME. $HOME is not /home/user in some environments
-    export TOOLKIT_DIR=/home/$USER/.isucon-toolkit
+    export TOOLKIT_DIR=$SCRIPT_DIR
 }
 
 check-envvars(){
