@@ -29,7 +29,7 @@ read-args(){
         case $1 in
             -h | --help) usage; exit 0;;
             -v) VERBOSE=1; shift 1;;
-            *) COMMAND=$1; break;;
+            *) COMMAND="$1"; shift 1;;
         esac
     done
 
