@@ -48,6 +48,9 @@ MYSQL_USER=root
 # MySQLのパスワード
 MYSQL_PASSWORD=root
 
+# デフォルトで開くMySQLのデータベース
+MYSQL_DATABASE=
+
 # Nginxのアクセスログのパス
 NGINX_ACCESS_LOG=/var/log/nginx/access.log
 
