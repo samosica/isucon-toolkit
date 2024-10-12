@@ -65,6 +65,10 @@ isucon13(){
     make build
 }
 
+if [ -n "${CONTEST:-}" ] && command -v "$CONTEST" >/dev/null 2>&1; then
+    $CONTEST; exit 0
+fi
+
 error "build command is not implemented yet; run isutool edit-command build"
 exit 1
 
