@@ -15,3 +15,5 @@
 !pt-query-digest.conf
 !commands
 !commands/*.sh
+!commands/data
+!commands/data/command.template
