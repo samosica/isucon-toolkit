@@ -30,13 +30,13 @@ read-args(){
         case $1 in
             -h | --help) usage; exit 0;;
             -v) VERBOSE=1; shift 1;;
-            *) COMMANDS+=("analyze-$1"); shift 1;;
+            *) COMMANDS+=(".analyze-$1"); shift 1;;
         esac
     done
 
     if [ "${#COMMANDS[@]}" -eq 0 ]; then
         local script
-        for script in "$SCRIPT_DIR"/analyze-*.sh; do
+        for script in "$SCRIPT_DIR"/.analyze-*.sh; do
             local command
             command=$(basename "$script")
             command=${command%.*}

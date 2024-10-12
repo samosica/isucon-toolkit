@@ -33,6 +33,8 @@ read-args(){
 read-args "$@"
 
 cd "$SCRIPT_DIR"
+# Note: commands starting with dot (.) are not displayed.
+#       See https://www.gnu.org/software/bash/manual/html_node/Filename-Expansion.html.
 for command in *.sh; do
     commandName=${command%.*}
     # do not pass -h instead of --help
