@@ -14,6 +14,8 @@ Commands:
 EOF
 
     local command
+    # Note: commands starting with dot (.) are not displayed.
+    #       See https://www.gnu.org/software/bash/manual/html_node/Filename-Expansion.html.
     for command in "$SCRIPT_DIR/commands"/*.sh; do
         local commandName
         commandName=$(basename "$command")
