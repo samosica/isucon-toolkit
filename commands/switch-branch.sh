@@ -13,11 +13,10 @@ usage(){
     readonly COMMAND_NAME
 
     cat <<EOF
-Usage: isutool $COMMAND_NAME [-b | --branch BRANCH] [--pull] [-h | --help] [-v]
-Prepare for a benchmark
+Usage: isutool $COMMAND_NAME [--pull] [-h | --help] [-v] BRANCH
+Switch to a branch
 
 Options:
-    -b, --branch BRANCH   switch to BRANCH
     --pull                fetch changes of a remote branch and merge it with the local one
     -h, --help            help
     -v                    show commands to be executed
@@ -26,26 +25,21 @@ EOF
 
 read-args(){
     VERBOSE=
-    SWITCH_BRANCH_OPTIONS=()
+    BRANCH=
+    PULL=    
     while [ $# -ge 1 ]; do
         case $1 in
             -h | --help) usage; exit 0;;
             -v) VERBOSE=1; shift 1;;
-            -b | --branch)
-                if [ $# -le 1 ]; then
-                    usage; exit 1
-                fi
-                SWITCH_BRANCH_OPTIONS+=("$2")
-                shift 2;;
-            --pull) SWITCH_BRANCH_OPTIONS+=("$1"); shift 1;;            
-            *) usage; exit 1;;
+            --pull) PULL=1; shift 1;;
+            *) BRANCH=$1; shift 1;;
         esac
     done
 
-    readonly VERBOSE
+    readonly VERBOSE BRANCH PULL
     if [ -n "$VERBOSE" ]; then
         set -x
-    fi        
+    fi
 }
 
 run-command(){
@@ -63,10 +57,24 @@ run-command(){
 
     if [ -n "$VERBOSE" ]; then
         set -x
-    fi
+    fi    
 }
 
 read-args "$@"
-run-command switch-branch "${SWITCH_BRANCH_OPTIONS[@]}"
-run-command log-rotate
-run-command restart
+cd "$REPO_DIR"
+
+if [ -n "$BRANCH" ] || [ -n "$PULL" ]; then
+    git fetch
+fi
+
+if [ -n "$BRANCH" ]; then
+    info "the current branch is $(git branch --show-current)"
+    git switch "$BRANCH"
+fi
+
+if [ -n "$PULL" ]; then
+    # Note: `git merge` (with no arguments) does not work when the current branch
+    #       does not have the remote-tracking branches. For now, origin/(the current branch)
+    #       is specified, but the part of "origin" should be parameterized.
+    git merge "origin/$(git branch --show-current)"
+fi
