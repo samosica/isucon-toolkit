@@ -13,10 +13,12 @@ usage(){
     readonly COMMAND_NAME
 
     cat <<EOF
-Usage: isutool $COMMAND_NAME [-h | --help] [-v]
+Usage: isutool $COMMAND_NAME [-b | --branch BRANCH] [--pull] [-h | --help] [-v]
 Run a benchmark. You must specify BENCHMARK_SERVER
 
 Options:
+    -b, --branch BRANCH   switch to BRANCH
+    --pull                fetch changes of a remote branch and merge it with the local one
     -h, --help            help
     -v                    show commands to be executed
 EOF
@@ -24,10 +26,18 @@ EOF
 
 read-args(){
     VERBOSE=
+    SWITCH_BRANCH_OPTIONS=()
     while [ $# -ge 1 ]; do
         case $1 in
             -h | --help) usage; exit 0;;
             -v) VERBOSE=1; shift 1;;
+            -b | --branch)
+                if [ $# -le 1 ]; then
+                    usage; exit 1
+                fi
+                SWITCH_BRANCH_OPTIONS+=("$1" "$2")
+                shift 2;;
+            --pull) SWITCH_BRANCH_OPTIONS+=("$1"); shift 1;;            
             *) usage; exit 1;;
         esac
     done
@@ -57,7 +67,7 @@ run-command(){
 }
 
 read-args "$@"
-run-command before-bench
+run-command before-bench "${SWITCH_BRANCH_OPTIONS[@]}"
 
 if [ -z "${BENCHMARK_SERVER+x}" ]; then
     error "unset variable: BENCHMARK_SERVER"

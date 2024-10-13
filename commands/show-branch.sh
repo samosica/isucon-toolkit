@@ -13,12 +13,10 @@ usage(){
     readonly COMMAND_NAME
 
     cat <<EOF
-Usage: isutool $COMMAND_NAME [-b | --branch BRANCH] [--pull] [-h | --help] [-v]
-Prepare for a benchmark
+Usage: isutool $COMMAND_NAME [-h | --help] [-v]
+Show the current branch
 
 Options:
-    -b, --branch BRANCH   switch to BRANCH
-    --pull                fetch changes of a remote branch and merge it with the local one
     -h, --help            help
     -v                    show commands to be executed
 EOF
@@ -26,18 +24,10 @@ EOF
 
 read-args(){
     VERBOSE=
-    SWITCH_BRANCH_OPTIONS=()
     while [ $# -ge 1 ]; do
         case $1 in
             -h | --help) usage; exit 0;;
             -v) VERBOSE=1; shift 1;;
-            -b | --branch)
-                if [ $# -le 1 ]; then
-                    usage; exit 1
-                fi
-                SWITCH_BRANCH_OPTIONS+=("$2")
-                shift 2;;
-            --pull) SWITCH_BRANCH_OPTIONS+=("$1"); shift 1;;            
             *) usage; exit 1;;
         esac
     done
@@ -45,7 +35,7 @@ read-args(){
     readonly VERBOSE
     if [ -n "$VERBOSE" ]; then
         set -x
-    fi        
+    fi
 }
 
 run-command(){
@@ -63,10 +53,8 @@ run-command(){
 
     if [ -n "$VERBOSE" ]; then
         set -x
-    fi
+    fi    
 }
 
 read-args "$@"
-run-command switch-branch "${SWITCH_BRANCH_OPTIONS[@]}"
-run-command log-rotate
-run-command restart
+git -C "$REPO_DIR" branch --show-current
