@@ -246,12 +246,21 @@ send_toolkit(){
         info "send toolkit to $server"
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "mkdir -p $TOOLKIT_DIR"
-        rsync -av alp pt-query-digest sync-all.sh sync.sh toolkit.mk toolkit.sh "$REMOTE_USER@$server:$TOOLKIT_DIR/"
+
+        # the 3rd line: toolkit v1
+        # the 4th line: toolkit v2
+        rsync -av \
+            alp pt-query-digest sync-all.sh sync.sh
+            toolkit-v1.mk toolkit-v1.sh \
+            commands toolkit.sh \
+            "$REMOTE_USER@$server:$TOOLKIT_DIR/"
+
         rsync -av "$ENVFILE" "$REMOTE_USER@$server:$TOOLKIT_DIR/"
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
             sudo install $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
+            sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
         "
     done
 }

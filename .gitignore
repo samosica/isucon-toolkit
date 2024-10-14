@@ -5,9 +5,9 @@
 !setup.sh
 !installer.sh
 !env-template.sh
-!toolkit.mk
-!toolkit.sh
+!toolkit-v1.mk
 !toolkit-v1.sh
+!toolkit.sh
 !sync.sh
 !sync-all.sh
 !ssh-pass-id.sh
