@@ -70,7 +70,7 @@ read-args "$@"
 run-command before-bench "${SWITCH_BRANCH_OPTIONS[@]}"
 
 if [ -z "${BENCHMARK_SERVER+x}" ]; then
-    error "unset variable: BENCHMARK_SERVER"
+    error "bench command no longer works; go to ISUCON portal site instead"
     exit 1
 fi
 sleep 5
