@@ -17,3 +17,4 @@
 !commands/*.sh
 !commands/data
 !commands/data/command.template
+!util.sh
