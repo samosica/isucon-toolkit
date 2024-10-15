@@ -233,7 +233,8 @@ install_apps(){
     local server
     for server in "${SERVERS[@]}"; do
         info "install apps in $server"
-        ssh "$REMOTE_USER@$server" "bash -s" < installer.sh
+        # --login is used to search for Go directories.
+        ssh "$REMOTE_USER@$server" "bash --login -s" < installer.sh
     done    
 }
 
