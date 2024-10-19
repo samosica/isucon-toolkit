@@ -1,4 +1,5 @@
 _isutool(){
+    # shellcheck disable=SC2034
     local cur prev words cword split
     _init_completion || return
 
