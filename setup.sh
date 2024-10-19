@@ -266,6 +266,20 @@ send_toolkit(){
     done
 }
 
+toolkit_setup(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "append completion setting to .bashrc in $server"
+        ssh "$REMOTE_USER@$server" bash <<'EOF'
+echo '
+[[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && \
+    . /usr/share/bash-completion/bash_completion
+command -v isutool >/dev/null && eval "$(isutool completion)"
+' >>~/.bashrc
+EOF
+    done
+}
+
 start_tailscale(){
     set +u
     if [ -z "$TAILSCALE_AUTHKEY" ]; then
@@ -287,4 +301,5 @@ set_timezone
 git_setup
 install_apps
 send_toolkit
+toolkit_setup
 start_tailscale
