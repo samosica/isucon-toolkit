@@ -260,9 +260,23 @@ send_toolkit(){
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
-            sudo install $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
+            sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
             sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
         "
+    done
+}
+
+toolkit_setup(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "append completion setting to .bashrc in $server"
+        ssh "$REMOTE_USER@$server" bash <<'EOF'
+echo '
+[[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && \
+    . /usr/share/bash-completion/bash_completion
+command -v isutool >/dev/null && eval "$(isutool completion)"
+' >>~/.bashrc
+EOF
     done
 }
 
@@ -287,4 +301,5 @@ set_timezone
 git_setup
 install_apps
 send_toolkit
+toolkit_setup
 start_tailscale
