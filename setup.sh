@@ -260,7 +260,7 @@ send_toolkit(){
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
-            sudo install $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
+            sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
             sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
         "
     done
