@@ -58,4 +58,4 @@ run-command(){
 }
 
 read-args "$@"
-cat "$SCRIPT_DIR/data/completion.bash"
+sed "s|{{ REPO_DIR }}|$REPO_DIR|" "$SCRIPT_DIR/data/completion.bash"
