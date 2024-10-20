@@ -23,7 +23,7 @@ _isutool(){
             if [[ "$cur" == -* ]]; then
                 COMPREPLY+=(-b --branch --pull -h --help -v)
             elif [ "$prev" == -b ] || [ "$prev" == --branch ]; then
-                readarray -t BRANCHES < <(git branch --format='%(refname:short)')
+                readarray -t BRANCHES < <(git -C "$REPO_DIR" branch --format='%(refname:short)')
                 COMPREPLY+=("${BRANCHES[@]}")
             fi
             readarray -t COMPREPLY < <(compgen -W "${COMPREPLY[*]}" -- "$cur")
@@ -56,7 +56,7 @@ _isutool(){
             if [[ "$cur" == -* ]]; then
                 COMPREPLY+=(-h --help -v)
             else
-                readarray -t BRANCHES < <(git branch --format='%(refname:short)')
+                readarray -t BRANCHES < <(git -C "$REPO_DIR" branch --format='%(refname:short)')
                 COMPREPLY+=("${BRANCHES[@]}")
             fi
             readarray -t COMPREPLY < <(compgen -W "${COMPREPLY[*]}" -- "$cur")
