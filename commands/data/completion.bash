@@ -1,4 +1,6 @@
 _isutool(){
+    local -r REPO_DIR="{{ REPO_DIR }}"
+
     # shellcheck disable=SC2034
     local cur prev words cword split
     _init_completion || return
