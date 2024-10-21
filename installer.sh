@@ -129,7 +129,7 @@ if [ -n "${INSTALL_GO:+x}" ]; then
     curl -LO "https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz"
     sudo tar -C /usr/local -xzf "${GO_VERSION}.linux-amd64.tar.gz"
     # shellcheck disable=SC2016
-    echo 'export PATH=/usr/local/go/bin:"$PATH"' >~/.profile
+    echo 'export PATH=/usr/local/go/bin:"$PATH"' >>~/.profile
     currentGoVersion="$(/usr/local/go/bin/go version | cut -d' ' -f3)"
     if [ "$currentGoVersion" != "$GO_VERSION" ]; then
         error "the expected version of Go is $GO_VERSION, but the actual one is $currentGoVersion"
