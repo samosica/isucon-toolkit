@@ -45,4 +45,7 @@ mkdir -p "$STATS_DIR"
 if sudo [ -e "$MYSQL_SLOW_LOG" ]; then
     sudo pt-query-digest --config "$TOOLKIT_DIR/pt-query-digest/pt-query-digest.conf" "$MYSQL_SLOW_LOG" \
         | tee "$STATS_DIR/mysql.log";
+else
+    error "no such file: $MYSQL_SLOW_LOG"
+    exit 1
 fi

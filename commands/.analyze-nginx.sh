@@ -55,4 +55,7 @@ if sudo [ -e "$NGINX_ACCESS_LOG" ]; then
         --file "$NGINX_ACCESS_LOG" \
         --config "$ALP_CONFIG_FILE" \
         | tee "$STATS_DIR/nginx.log"
+else
+    error "no such file: $NGINX_ACCESS_LOG"
+    exit 1
 fi
