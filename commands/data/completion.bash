@@ -1,5 +1,5 @@
 _isutool(){
-    local -r REPO_DIR="{{ REPO_DIR }}"
+    local -r ENVFILE="{{ ENVFILE }}"
 
     # shellcheck disable=SC2034
     local cur prev words cword split
@@ -25,6 +25,9 @@ _isutool(){
             if [[ "$cur" == -* ]]; then
                 COMPREPLY+=(-b --branch --pull -h --help -v)
             elif [ "$prev" == -b ] || [ "$prev" == --branch ]; then
+                local REPO_DIR
+                # shellcheck disable=SC1090
+                REPO_DIR=$(. "$ENVFILE" && echo "$REPO_DIR")
                 readarray -t BRANCHES < <(git -C "$REPO_DIR" branch --format='%(refname:short)')
                 COMPREPLY+=("${BRANCHES[@]}")
             fi
@@ -58,6 +61,9 @@ _isutool(){
             if [[ "$cur" == -* ]]; then
                 COMPREPLY+=(-h --help -v)
             else
+                local REPO_DIR
+                # shellcheck disable=SC1090
+                REPO_DIR=$(. "$ENVFILE" && echo "$REPO_DIR")
                 readarray -t BRANCHES < <(git -C "$REPO_DIR" branch --format='%(refname:short)')
                 COMPREPLY+=("${BRANCHES[@]}")
             fi
