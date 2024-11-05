@@ -26,6 +26,7 @@ _isutool(){
                 COMPREPLY+=(-b --branch --pull -h --help -v)
             elif [ "$prev" == -b ] || [ "$prev" == --branch ]; then
                 local REPO_DIR
+                # Note: running source command in a subshell does not leave the variables to be read
                 # shellcheck disable=SC1090
                 REPO_DIR=$(. "$ENVFILE" && echo "$REPO_DIR")
                 readarray -t BRANCHES < <(git -C "$REPO_DIR" branch --format='%(refname:short)')
