@@ -13,9 +13,11 @@ usage(){
     readonly COMMAND_NAME
 
     cat <<EOF
-Usage: isutool $COMMAND_NAME [-h | --help] [-v]
-Enable completion of commands and arguments
-Run eval "\$(isutool completion)"
+Usage: isutool $COMMAND_NAME [-h | --help] [-v] (bash | zsh)
+Enable completion for isutool
+
+In Bash, run eval "\$(isutool completion bash)".
+In Zsh, run eval "\$(isutool completion zsh)".
 
 Options:
     -h, --help            help
@@ -25,10 +27,12 @@ EOF
 
 read-args(){
     VERBOSE=
+    GIVEN_SHELL=
     while [ $# -ge 1 ]; do
         case $1 in
             -h | --help) usage; exit 0;;
             -v) VERBOSE=1; shift 1;;
+            bash | zsh) GIVEN_SHELL=$1; shift 1;;
             *) usage; exit 1;;
         esac
     done
@@ -36,6 +40,11 @@ read-args(){
     readonly VERBOSE
     if [ -n "$VERBOSE" ]; then
         set -x
+    fi
+
+    readonly GIVEN_SHELL
+    if [ -z "$GIVEN_SHELL" ]; then
+        usage; exit 1
     fi
 }
 
@@ -58,4 +67,8 @@ run-command(){
 }
 
 read-args "$@"
-sed "s|{{ REPO_DIR }}|$REPO_DIR|" "$SCRIPT_DIR/data/completion.bash"
+ENVFILE="$SCRIPT_DIR/../env.sh"
+case "$GIVEN_SHELL" in
+    bash) sed "s|{{ REPO_DIR }}|$REPO_DIR|" "$SCRIPT_DIR/data/completion.bash";;
+    zsh) sed "s|{{ ENVFILE }}|$ENVFILE|" "$SCRIPT_DIR/data/completion.zsh";;
+esac

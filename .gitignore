@@ -18,4 +18,5 @@
 !commands/data
 !commands/data/command.template
 !commands/data/completion.bash
+!commands/data/completion.zsh
 !util.sh
