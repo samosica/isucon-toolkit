@@ -69,6 +69,6 @@ run-command(){
 read-args "$@"
 ENVFILE="$SCRIPT_DIR/../env.sh"
 case "$GIVEN_SHELL" in
-    bash) sed "s|{{ REPO_DIR }}|$REPO_DIR|" "$SCRIPT_DIR/data/completion.bash";;
+    bash) sed "s|{{ ENVFILE }}|$ENVFILE|" "$SCRIPT_DIR/data/completion.bash";;
     zsh) sed "s|{{ ENVFILE }}|$ENVFILE|" "$SCRIPT_DIR/data/completion.zsh";;
 esac
