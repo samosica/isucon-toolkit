@@ -190,19 +190,15 @@ distribute_server_ssh_keys(){
     # shellcheck disable=SC2064
     trap "rm -r $TEMPDIR" RETURN
 
-    local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
+    download_public_keys "$TEMPDIR"
+
     local server
     for server in "${SERVERS[@]}"; do
-        local client_keyfile="$TEMPDIR/id_ed25519_$server.pub"
-        rsync -av \
-            "$REMOTE_USER@$server:$SERVER_KEYFILE" \
-            "$client_keyfile"
-
         local s
         for s in "${SERVERS[@]}"; do
             if [ "$s" != "$server" ]; then
                 info "send $server's SSH key to $s"
-                ssh-copy-id -f -i "$client_keyfile" "$REMOTE_USER@$s"
+                ssh-copy-id -f -i "$TEMPDIR/id_ed25519_$server.pub" "$REMOTE_USER@$s"
             fi
         done
     done
