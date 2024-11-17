@@ -117,6 +117,23 @@ distribute_member_ssh_keys(){
     done
 }
 
+generate_server_ssh_keys(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        if ! ssh -q "$REMOTE_USER@$server" "[ -f '$REMOTE_USER_HOME/.ssh/id_ed25519' ]"; then
+            info "generate $server's SSH key"
+
+            # shellcheck disable=SC2029
+            ssh "$REMOTE_USER@$server" "
+                mkdir -p '$REMOTE_USER_HOME/.ssh'
+                ssh-keygen -t ed25519 -f '$REMOTE_USER_HOME/.ssh/id_ed25519' -N ''
+            "
+        else
+            info "$server's SSH key is already generated"
+        fi
+    done
+}
+
 distribute_server_ssh_keys(){
     if ! command -v gh >/dev/null 2>&1; then
         error "gh is not installed"
@@ -141,16 +158,6 @@ distribute_server_ssh_keys(){
     local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
     local server
     for server in "${SERVERS[@]}"; do
-        info "generate $server's SSH key"
-        
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            mkdir -p $REMOTE_USER_HOME/.ssh
-            if ! [ -f $REMOTE_USER_HOME/.ssh/id_ed25519 ]; then
-                ssh-keygen -t ed25519 -f $REMOTE_USER_HOME/.ssh/id_ed25519 -N ''
-            fi
-        "
-
         local client_keyfile="$TEMPDIR/id_ed25519_$server.pub"
         rsync -av \
             "$REMOTE_USER@$server:$SERVER_KEYFILE" \
@@ -296,6 +303,7 @@ start_tailscale(){
 }
 
 distribute_member_ssh_keys
+generate_server_ssh_keys
 distribute_server_ssh_keys
 set_timezone
 git_setup
