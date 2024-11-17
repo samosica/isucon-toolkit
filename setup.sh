@@ -134,7 +134,20 @@ generate_server_ssh_keys(){
     done
 }
 
-distribute_server_ssh_keys(){
+download_public_keys(){
+    local -r OUTPUT_DIR=$1
+    local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
+    
+    local server
+    for server in "${SERVERS[@]}"; do
+        info "download $server's public key"
+        rsync -av \
+            "$REMOTE_USER@$server:$SERVER_KEYFILE" \
+            "$OUTPUT_DIR/id_ed25519_$server.pub"
+    done
+}
+
+distribute_server_ssh_keys_to_github(){
     if ! command -v gh >/dev/null 2>&1; then
         error "gh is not installed"
         exit 1
@@ -155,6 +168,28 @@ distribute_server_ssh_keys(){
     # shellcheck disable=SC2064
     trap "rm -r $TEMPDIR" RETURN
 
+    download_public_keys "$TEMPDIR"
+
+    local server
+    for server in "${SERVERS[@]}"; do
+        if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
+            info "add $server's SSH key as deploy key"
+            gh repo deploy-key add \
+                "$TEMPDIR/id_ed25519_$server.pub" \
+                --repo "$GITHUB_REPO" \
+                --title "$server" \
+                --allow-write
+        else
+            info "$server's SSH key is already added as deploy key"
+        fi
+    done
+}
+
+distribute_server_ssh_keys(){
+    local -r TEMPDIR=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -r $TEMPDIR" RETURN
+
     local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
     local server
     for server in "${SERVERS[@]}"; do
@@ -162,17 +197,6 @@ distribute_server_ssh_keys(){
         rsync -av \
             "$REMOTE_USER@$server:$SERVER_KEYFILE" \
             "$client_keyfile"
-
-        info "add $server's SSH key as deploy key"
-        if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
-            gh repo deploy-key add \
-                "$client_keyfile" \
-                --repo "$GITHUB_REPO" \
-                --title "$server" \
-                --allow-write
-        else
-            info "$server's SSH key is already added as deploy key"
-        fi
 
         local s
         for s in "${SERVERS[@]}"; do
@@ -304,6 +328,7 @@ start_tailscale(){
 
 distribute_member_ssh_keys
 generate_server_ssh_keys
+distribute_server_ssh_keys_to_github
 distribute_server_ssh_keys
 set_timezone
 git_setup
