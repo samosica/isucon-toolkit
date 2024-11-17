@@ -117,7 +117,36 @@ distribute_member_ssh_keys(){
     done
 }
 
-distribute_server_ssh_keys(){
+generate_server_ssh_keys(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        if ! ssh -q "$REMOTE_USER@$server" "[ -f '$REMOTE_USER_HOME/.ssh/id_ed25519' ]"; then
+            info "generate $server's SSH key"
+
+            # shellcheck disable=SC2029
+            ssh "$REMOTE_USER@$server" "
+                mkdir -p '$REMOTE_USER_HOME/.ssh'
+                ssh-keygen -t ed25519 -f '$REMOTE_USER_HOME/.ssh/id_ed25519' -N ''
+            "
+        else
+            info "$server's SSH key is already generated"
+        fi
+    done
+}
+
+download_public_key(){
+    local -r SERVER=$1
+    local -r OUTPUT_DIR=$2
+    local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
+    local -r CLIENT_KEYFILE="$OUTPUT_DIR/id_ed25519_$SERVER.pub"    
+
+    info "download $SERVER's public key"
+    rsync -av \
+        "$REMOTE_USER@$SERVER:$SERVER_KEYFILE" \
+        "$CLIENT_KEYFILE"
+}
+
+distribute_server_ssh_keys_to_github(){
     if ! command -v gh >/dev/null 2>&1; then
         error "gh is not installed"
         exit 1
@@ -138,40 +167,37 @@ distribute_server_ssh_keys(){
     # shellcheck disable=SC2064
     trap "rm -r $TEMPDIR" RETURN
 
-    local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
     local server
     for server in "${SERVERS[@]}"; do
-        info "generate $server's SSH key"
-        
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            mkdir -p $REMOTE_USER_HOME/.ssh
-            if ! [ -f $REMOTE_USER_HOME/.ssh/id_ed25519 ]; then
-                ssh-keygen -t ed25519 -f $REMOTE_USER_HOME/.ssh/id_ed25519 -N ''
-            fi
-        "
-
-        local client_keyfile="$TEMPDIR/id_ed25519_$server.pub"
-        rsync -av \
-            "$REMOTE_USER@$server:$SERVER_KEYFILE" \
-            "$client_keyfile"
-
-        info "add $server's SSH key as deploy key"
         if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
+            download_public_key "$server" "$TEMPDIR"
+
+            info "add $server's SSH key as deploy key"
             gh repo deploy-key add \
-                "$client_keyfile" \
+                "$TEMPDIR/id_ed25519_$server.pub" \
                 --repo "$GITHUB_REPO" \
                 --title "$server" \
                 --allow-write
         else
             info "$server's SSH key is already added as deploy key"
         fi
+    done
+}
+
+distribute_server_ssh_keys_to_servers(){
+    local -r TEMPDIR=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -r $TEMPDIR" RETURN
+
+    local server
+    for server in "${SERVERS[@]}"; do
+        download_public_key "$server" "$TEMPDIR"
 
         local s
         for s in "${SERVERS[@]}"; do
             if [ "$s" != "$server" ]; then
                 info "send $server's SSH key to $s"
-                ssh-copy-id -f -i "$client_keyfile" "$REMOTE_USER@$s"
+                ssh-copy-id -f -i "$TEMPDIR/id_ed25519_$server.pub" "$REMOTE_USER@$s"
             fi
         done
     done
@@ -296,7 +322,9 @@ start_tailscale(){
 }
 
 distribute_member_ssh_keys
-distribute_server_ssh_keys
+generate_server_ssh_keys
+distribute_server_ssh_keys_to_github
+distribute_server_ssh_keys_to_servers
 set_timezone
 git_setup
 install_apps
