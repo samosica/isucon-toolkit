@@ -185,7 +185,7 @@ distribute_server_ssh_keys_to_github(){
     done
 }
 
-distribute_server_ssh_keys(){
+distribute_server_ssh_keys_to_servers(){
     local -r TEMPDIR=$(mktemp -d)
     # shellcheck disable=SC2064
     trap "rm -r $TEMPDIR" RETURN
@@ -325,7 +325,7 @@ start_tailscale(){
 distribute_member_ssh_keys
 generate_server_ssh_keys
 distribute_server_ssh_keys_to_github
-distribute_server_ssh_keys
+distribute_server_ssh_keys_to_servers
 set_timezone
 git_setup
 install_apps
