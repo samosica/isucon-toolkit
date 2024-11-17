@@ -134,17 +134,16 @@ generate_server_ssh_keys(){
     done
 }
 
-download_public_keys(){
-    local -r OUTPUT_DIR=$1
+download_public_key(){
+    local -r SERVER=$1
+    local -r OUTPUT_DIR=$2
     local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
-    
-    local server
-    for server in "${SERVERS[@]}"; do
-        info "download $server's public key"
-        rsync -av \
-            "$REMOTE_USER@$server:$SERVER_KEYFILE" \
-            "$OUTPUT_DIR/id_ed25519_$server.pub"
-    done
+    local -r CLIENT_KEYFILE="$OUTPUT_DIR/id_ed25519_$SERVER.pub"    
+
+    info "download $SERVER's public key"
+    rsync -av \
+        "$REMOTE_USER@$SERVER:$SERVER_KEYFILE" \
+        "$CLIENT_KEYFILE"
 }
 
 distribute_server_ssh_keys_to_github(){
@@ -168,11 +167,11 @@ distribute_server_ssh_keys_to_github(){
     # shellcheck disable=SC2064
     trap "rm -r $TEMPDIR" RETURN
 
-    download_public_keys "$TEMPDIR"
-
     local server
     for server in "${SERVERS[@]}"; do
         if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
+            download_public_key "$server" "$TEMPDIR"
+
             info "add $server's SSH key as deploy key"
             gh repo deploy-key add \
                 "$TEMPDIR/id_ed25519_$server.pub" \
@@ -190,10 +189,10 @@ distribute_server_ssh_keys_to_servers(){
     # shellcheck disable=SC2064
     trap "rm -r $TEMPDIR" RETURN
 
-    download_public_keys "$TEMPDIR"
-
     local server
     for server in "${SERVERS[@]}"; do
+        download_public_key "$server" "$TEMPDIR"
+
         local s
         for s in "${SERVERS[@]}"; do
             if [ "$s" != "$server" ]; then
