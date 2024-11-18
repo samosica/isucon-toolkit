@@ -253,7 +253,7 @@ toolkit_setup(){
 echo '
 [[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && \
     . /usr/share/bash-completion/bash_completion
-command -v isutool >/dev/null && eval "$(isutool completion)"
+command -v isutool >/dev/null && eval "$(isutool completion bash)"
 ' >>~/.bashrc
 EOF
     done
