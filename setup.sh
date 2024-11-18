@@ -100,8 +100,8 @@ defined_check(){
 #       If you assign the empty array to a variable, Bash recognizes the variable as an unset one
 defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
 
-REMOTE_USER_HOME="/home/$REMOTE_USER"
-readonly REMOTE_USER_HOME
+readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
+readonly TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
 
 distribute_member_ssh_keys(){
     local -r TEMPDIR=$(mktemp -d)
@@ -220,7 +220,6 @@ git_setup(){
 send_toolkit(){
     cd "$CURDIR"
 
-    local -r TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
     local server
     for server in "${SERVERS[@]}"; do
         info "send toolkit to $server"
@@ -233,21 +232,21 @@ send_toolkit(){
             alp pt-query-digest sync-all.sh sync.sh util.sh \
             toolkit-v1.mk toolkit-v1.sh \
             commands toolkit.sh \
+            "$ENVFILE" \
             "$REMOTE_USER@$server:$TOOLKIT_DIR/"
-
-        rsync -av "$ENVFILE" "$REMOTE_USER@$server:$TOOLKIT_DIR/"
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
-            sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
-            sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
-        "
     done
 }
 
 toolkit_setup(){
     local server
     for server in "${SERVERS[@]}"; do
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
+            sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
+            sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
+        "
+
         info "append completion setting to .bashrc in $server"
         ssh "$REMOTE_USER@$server" bash <<'EOF'
 echo '
