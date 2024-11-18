@@ -15,12 +15,13 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] [-o KEY=VALUE] [--authkey AUTHKEY] [--envfile ENVFILE]
+Usage: $0 [-h | --help] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--authkey AUTHKEY] [--envfile ENVFILE]
 Set up multiple servers at once
 
 Options:
     -h, --help        help
-    -o                specify SSH option; see ssh_config(5)    
+    -o                specify SSH option; see ssh_config(5)
+    --github-token    specify GitHub personal access token
     --authkey         specify Tailscale auth key; use reusable key when setting multiple servers up
     --envfile         specify env file (default: $(dirname "$0")/env.sh)
 EOF
@@ -41,6 +42,10 @@ read_args(){
                 [ $# -ge 2 ] || { usage && exit 1; }
                 TAILSCALE_AUTHKEY=$2
                 shift 2 ;;
+            --github-token)
+                [ $# -ge 2 ] || { usage && exit 1; }
+                GITHUB_TOKEN=$2
+                shift 2;;
             --envfile)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 ENVFILE=$2
@@ -49,9 +54,11 @@ read_args(){
         esac
     done
 
-    readonly TAILSCALE_AUTHKEY
-    readonly ENVFILE
-    readonly SSH_OPTIONS
+    if [ -z "${GITHUB_TOKEN:-}" ]; then
+        usage; exit 1
+    fi
+
+    readonly SSH_OPTIONS TAILSCALE_AUTHKEY GITHUB_TOKEN ENVFILE
 }
 
 # override ssh-copy-id with SSH_OPTIONS
@@ -146,44 +153,6 @@ download_public_key(){
         "$CLIENT_KEYFILE"
 }
 
-distribute_server_ssh_keys_to_github(){
-    if ! command -v gh >/dev/null 2>&1; then
-        error "gh is not installed"
-        exit 1
-    fi
-
-    if ! gh auth status >/dev/null 2>&1; then
-        # shellcheck disable=SC2016
-        error 'you are not logged into GitHub; run `gh auth login`'
-        exit 1
-    fi
-
-    if ! gh api "repos/$GITHUB_REPO" >/dev/null 2>&1; then
-        error "$GITHUB_REPO: no such repository"
-        exit 1
-    fi
-
-    local -r TEMPDIR=$(mktemp -d)
-    # shellcheck disable=SC2064
-    trap "rm -r $TEMPDIR" RETURN
-
-    local server
-    for server in "${SERVERS[@]}"; do
-        if ! gh repo deploy-key list --repo "$GITHUB_REPO" | cut -f2 | grep "$server" >/dev/null 2>&1; then
-            download_public_key "$server" "$TEMPDIR"
-
-            info "add $server's SSH key as deploy key"
-            gh repo deploy-key add \
-                "$TEMPDIR/id_ed25519_$server.pub" \
-                --repo "$GITHUB_REPO" \
-                --title "$server" \
-                --allow-write
-        else
-            info "$server's SSH key is already added as deploy key"
-        fi
-    done
-}
-
 distribute_server_ssh_keys_to_servers(){
     local -r TEMPDIR=$(mktemp -d)
     # shellcheck disable=SC2064
@@ -217,37 +186,6 @@ set_timezone(){
     done
 }
 
-git_setup(){
-    local -r TEMPDIR=$(mktemp -d)
-    # shellcheck disable=SC2064
-    trap "rm -rf $TEMPDIR" RETURN
-
-    local -r DOTGIT="$TEMPDIR/.git"
-    gh repo clone "$GITHUB_REPO" "$DOTGIT" -- --bare
-
-    local server
-    for server in "${SERVERS[@]}"; do
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            git config --global user.email $GIT_EMAIL
-            git config --global user.name $GIT_USERNAME
-        "
-
-        rsync -av "$DOTGIT" "$REMOTE_USER@$server:$REPO_DIR"
-        # core.logAllRefUpdates: reflog を有効にする
-        # remote.origin.fetch: リモートの branch とローカルの origin/branch を対応付ける
-        # remote.origin.fetch を設定しないと git fetch でリモートの変更が反映されず、git checkout branch なども失敗する
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            cd $REPO_DIR
-            git config core.bare false
-            git config core.logAllRefUpdates true
-            git config remote.origin.fetch '+refs/heads/*:refs/heads/origin/*'
-            git restore --staged --worktree . || true
-        "
-    done
-}
-
 install_apps(){
     cd "$CURDIR"
 
@@ -262,6 +200,21 @@ install_apps(){
         # --login is used to search for Go directories.
         ssh "$REMOTE_USER@$server" "bash --login -s" < installer.sh
     done    
+}
+
+git_setup(){
+    local server
+    for server in "${SERVERS[@]}"; do
+        echo "$GITHUB_TOKEN" | ssh "$REMOTE_USER@$server" 'gh auth login --with-token'
+
+        # shellcheck disable=SC2029
+        ssh "$REMOTE_USER@$server" "
+            gh auth setup-git
+            gh repo clone $GITHUB_REPO $REPO_DIR
+            git config --global user.email $GIT_EMAIL
+            git config --global user.name $GIT_USERNAME
+        "
+    done
 }
 
 send_toolkit(){
@@ -323,11 +276,10 @@ start_tailscale(){
 
 distribute_member_ssh_keys
 generate_server_ssh_keys
-distribute_server_ssh_keys_to_github
 distribute_server_ssh_keys_to_servers
 set_timezone
-git_setup
 install_apps
+git_setup
 send_toolkit
 toolkit_setup
 start_tailscale
