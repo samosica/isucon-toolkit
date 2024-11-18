@@ -140,3 +140,14 @@ if [ -n "${INSTALL_GO:+x}" ]; then
         exit 1
     fi
 fi
+
+if ! command -v gh >/dev/null 2>&1; then
+    readonly GH_VERSION=2.62.0
+    readonly GH_DOWNLOAD_URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz"
+    curl -LO "$GH_DOWNLOAD_URL"
+
+    dir="gh_${GH_VERSION}_linux_amd64"
+    tar xf "$dir.tar.gz"
+    sudo install "$dir/bin/gh" /usr/bin
+    sudo cp "$dir/share/man/man1"/* /usr/share/man/man1
+fi
