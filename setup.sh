@@ -15,11 +15,12 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--envfile ENVFILE]
+Usage: $0 [-h | --help] [-v] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--envfile ENVFILE]
 Set up multiple servers at once
 
 Options:
     -h, --help        help
+    -v                show commands to be executed    
     -o                specify SSH option; see ssh_config(5)
     --github-token    specify GitHub personal access token
     --envfile         specify env file (default: $(dirname "$0")/env.sh)
@@ -27,12 +28,14 @@ EOF
 }
 
 read_args(){
+    VERBOSE=
     ENVFILE="$CURDIR/env.sh"
     SSH_OPTIONS=()
 
     while [ $# -ge 1 ]; do
         case "$1" in
             -h | --help) usage; exit 0;;
+            -v) VERBOSE=1; shift 1;;
             -o)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 SSH_OPTIONS+=("$1" "$2")
@@ -53,7 +56,11 @@ read_args(){
         usage; exit 1
     fi
 
-    readonly SSH_OPTIONS GITHUB_TOKEN ENVFILE
+    readonly VERBOSE SSH_OPTIONS GITHUB_TOKEN ENVFILE
+
+    if [ -n "$VERBOSE" ]; then
+        set -x
+    fi    
 }
 
 # override ssh with SSH_OPTIONS
