@@ -103,75 +103,6 @@ defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
 readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
 readonly TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
 
-distribute_member_ssh_keys(){
-    local -r TEMPDIR=$(mktemp -d)
-    # shellcheck disable=SC2064
-    trap "rm -r $TEMPDIR" RETURN
-
-    local account
-    for account in "${TEAMMATE_GITHUB_ACCOUNTS[@]}"; do
-        info "download $account's SSH key"
-        if ! curl -s --fail "https://github.com/$account.keys" -o "$TEMPDIR/$account.pub"; then
-            error "$account does not exist or does not have SSH key"
-            exit 1
-        fi
-
-        local server
-        for server in "${SERVERS[@]}"; do
-            info "send $account's SSH key to $server"
-            ssh-copy-id -f -i "$TEMPDIR/$account.pub" "$REMOTE_USER@$server"
-        done
-    done
-}
-
-generate_server_ssh_keys(){
-    local server
-    for server in "${SERVERS[@]}"; do
-        if ! ssh -q "$REMOTE_USER@$server" "[ -f '$REMOTE_USER_HOME/.ssh/id_ed25519' ]"; then
-            info "generate $server's SSH key"
-
-            # shellcheck disable=SC2029
-            ssh "$REMOTE_USER@$server" "
-                mkdir -p '$REMOTE_USER_HOME/.ssh'
-                ssh-keygen -t ed25519 -f '$REMOTE_USER_HOME/.ssh/id_ed25519' -N ''
-            "
-        else
-            info "$server's SSH key is already generated"
-        fi
-    done
-}
-
-download_public_key(){
-    local -r SERVER=$1
-    local -r OUTPUT_DIR=$2
-    local -r SERVER_KEYFILE="$REMOTE_USER_HOME/.ssh/id_ed25519.pub"
-    local -r CLIENT_KEYFILE="$OUTPUT_DIR/id_ed25519_$SERVER.pub"    
-
-    info "download $SERVER's public key"
-    rsync -av \
-        "$REMOTE_USER@$SERVER:$SERVER_KEYFILE" \
-        "$CLIENT_KEYFILE"
-}
-
-distribute_server_ssh_keys_to_servers(){
-    local -r TEMPDIR=$(mktemp -d)
-    # shellcheck disable=SC2064
-    trap "rm -r $TEMPDIR" RETURN
-
-    local server
-    for server in "${SERVERS[@]}"; do
-        download_public_key "$server" "$TEMPDIR"
-
-        local s
-        for s in "${SERVERS[@]}"; do
-            if [ "$s" != "$server" ]; then
-                info "send $server's SSH key to $s"
-                ssh-copy-id -f -i "$TEMPDIR/id_ed25519_$server.pub" "$REMOTE_USER@$s"
-            fi
-        done
-    done
-}
-
 set_timezone(){
     info "set timezone"
 
@@ -258,27 +189,8 @@ EOF
     done
 }
 
-start_tailscale(){
-    set +u
-    if [ -z "$TAILSCALE_AUTHKEY" ]; then
-        info "skip starting Tailscale"
-    else
-        local server
-        for server in "${SERVERS[@]}"; do
-            info "start Tailscale in $server"
-            # shellcheck disable=SC2029
-            ssh "$REMOTE_USER@$server" "sudo tailscale up --ssh --hostname $server --authkey $TAILSCALE_AUTHKEY"
-        done
-    fi
-    set -u
-}
-
-distribute_member_ssh_keys
-generate_server_ssh_keys
-distribute_server_ssh_keys_to_servers
 set_timezone
 install_apps
 git_setup
 send_toolkit
 toolkit_setup
-start_tailscale
