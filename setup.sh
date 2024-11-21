@@ -18,6 +18,8 @@ usage(){
 Usage: $0 [-h | --help] [-v] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--envfile ENVFILE]
 Set up multiple servers at once
 
+You can also specify GITHUB_TOKEN as an environment variable.
+
 Options:
     -h, --help        help
     -v                show commands to be executed    
@@ -29,8 +31,9 @@ EOF
 
 read_args(){
     VERBOSE=
-    ENVFILE="$CURDIR/env.sh"
     SSH_OPTIONS=()
+    GITHUB_TOKEN="${GITHUB_TOKEN-}"
+    ENVFILE="$CURDIR/env.sh"
 
     while [ $# -ge 1 ]; do
         case "$1" in
@@ -52,7 +55,7 @@ read_args(){
         esac
     done
 
-    if [ -z "${GITHUB_TOKEN:-}" ]; then
+    if [ -z "${GITHUB_TOKEN}" ]; then
         usage; exit 1
     fi
 
