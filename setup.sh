@@ -15,14 +15,13 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--authkey AUTHKEY] [--envfile ENVFILE]
+Usage: $0 [-h | --help] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--envfile ENVFILE]
 Set up multiple servers at once
 
 Options:
     -h, --help        help
     -o                specify SSH option; see ssh_config(5)
     --github-token    specify GitHub personal access token
-    --authkey         specify Tailscale auth key; use reusable key when setting multiple servers up
     --envfile         specify env file (default: $(dirname "$0")/env.sh)
 EOF
 }
@@ -33,15 +32,11 @@ read_args(){
 
     while [ $# -ge 1 ]; do
         case "$1" in
-            -h | --help) usage; exit 0 ;;
+            -h | --help) usage; exit 0;;
             -o)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 SSH_OPTIONS+=("$1" "$2")
-                shift 2 ;;            
-            --authkey)
-                [ $# -ge 2 ] || { usage && exit 1; }
-                TAILSCALE_AUTHKEY=$2
-                shift 2 ;;
+                shift 2;;
             --github-token)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 GITHUB_TOKEN=$2
@@ -49,8 +44,8 @@ read_args(){
             --envfile)
                 [ $# -ge 2 ] || { usage && exit 1; }
                 ENVFILE=$2
-                shift 2 ;;           
-            *) usage; exit 1 ;;
+                shift 2;;
+            *) usage; exit 1;;
         esac
     done
 
@@ -58,12 +53,7 @@ read_args(){
         usage; exit 1
     fi
 
-    readonly SSH_OPTIONS TAILSCALE_AUTHKEY GITHUB_TOKEN ENVFILE
-}
-
-# override ssh-copy-id with SSH_OPTIONS
-ssh-copy-id(){
-    command ssh-copy-id "${SSH_OPTIONS[@]}" "$@"
+    readonly SSH_OPTIONS GITHUB_TOKEN ENVFILE
 }
 
 # override ssh with SSH_OPTIONS
@@ -96,8 +86,6 @@ defined_check(){
     set -u
 }
 
-# Note: It is impossible to check if TEAMMATE_GITHUB_ACCOUNTS and SERVERS are set or not
-#       If you assign the empty array to a variable, Bash recognizes the variable as an unset one
 defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
 
 readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
@@ -129,7 +117,7 @@ install_apps(){
     for server in "${SERVERS[@]}"; do
         info "install apps in $server"
         # --login is used to search for Go directories.
-        ssh "$REMOTE_USER@$server" "bash --login -s" < installer.sh
+        ssh "$REMOTE_USER@$server" "bash --login -s" <installer.sh
     done    
 }
 
