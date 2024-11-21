@@ -205,7 +205,7 @@ install_apps(){
 git_setup(){
     local server
     for server in "${SERVERS[@]}"; do
-        echo "$GITHUB_TOKEN" | ssh "$REMOTE_USER@$server" 'gh auth login --with-token'
+        ssh "$REMOTE_USER@$server" 'gh auth login --with-token' <<<"$GITHUB_TOKEN"
 
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
