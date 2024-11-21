@@ -99,6 +99,7 @@ set_timezone(){
     for server in "${SERVERS[@]}"; do
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
+            set -e
             sudo timedatectl set-timezone $TIMEZONE
             timedatectl
         "
@@ -128,6 +129,7 @@ git_setup(){
 
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
+            set -e
             gh auth setup-git
             gh repo clone $GITHUB_REPO $REPO_DIR
             git config --global user.email $GIT_EMAIL
@@ -161,18 +163,17 @@ toolkit_setup(){
     for server in "${SERVERS[@]}"; do
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
-            echo SERVER_NAME=$server >> $TOOLKIT_DIR/env.sh
+            set -e
+            echo SERVER_NAME=$server >>$TOOLKIT_DIR/env.sh
             sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
             sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
         "
 
         info "append completion setting to .bashrc in $server"
-        ssh "$REMOTE_USER@$server" bash <<'EOF'
-echo '
+        ssh "$REMOTE_USER@$server" 'cat >>~/.bashrc' <<'EOF'
 [[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && \
     . /usr/share/bash-completion/bash_completion
 command -v isutool >/dev/null && eval "$(isutool completion bash)"
-' >>~/.bashrc
 EOF
     done
 }
