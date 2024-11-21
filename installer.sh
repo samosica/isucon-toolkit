@@ -78,10 +78,6 @@ if ! command -v tbls >/dev/null 2>&1; then
     sudo dpkg -i tbls.deb
 fi
 
-if ! command -v tailscale >/dev/null 2>&1; then
-    curl -fsSL https://tailscale.com/install.sh | sh
-fi
-
 if ! command -v slp >/dev/null 2>&1; then
 	curl -LO https://github.com/tkuchiki/slp/releases/download/v0.2.0/slp_linux_amd64.tar.gz
 	tar xf slp_linux_amd64.tar.gz
