@@ -135,13 +135,22 @@ install_apps(){
 git_setup(){
     ssh "$REMOTE_USER@$SERVER" 'gh auth login --with-token' <<<"$GITHUB_TOKEN"
 
+    # Note: --bare and the subsequent commands are required because $REPO_DIR has some files.
+    # core.logAllRefUpdates: reflog を有効にする
+    # remote.origin.fetch: リモートの branch とローカルの origin/branch を対応付ける
+    # remote.origin.fetch を設定しないと git fetch でリモートの変更が反映されず、git checkout branch なども失敗する
     # shellcheck disable=SC2029
     ssh "$REMOTE_USER@$SERVER" "
         set -e
         gh auth setup-git
-        gh repo clone $GITHUB_REPO $REPO_DIR
         git config --global user.email $GIT_EMAIL
         git config --global user.name $GIT_USERNAME
+        cd '$REPO_DIR'
+        gh repo clone '$GITHUB_REPO' .git -- --bare
+        git config core.bare false
+        git config core.logAllRefUpdates true
+        git config remote.origin.fetch '+refs/heads/*:refs/heads/origin/*'
+        git restore --staged --worktree . || true
     "
 }
 
