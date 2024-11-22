@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-
 set -eu
 
-CURDIR=$(cd "$(dirname "$0")" && pwd)
-readonly CURDIR
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+readonly SCRIPT_DIR
 
 error(){
     printf "\x1b[1;31m[error]\x1b[0m %s\n" "$*" 1>&2
@@ -15,7 +14,7 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] [-v] [-o KEY=VALUE] --github-token GITHUB_TOKEN [--envfile ENVFILE]
+Usage: $0 [-h | --help] [-v] [-o KEY=VALUE] [--github-token GITHUB_TOKEN] [--envfile ENVFILE]
 Set up multiple servers at once
 
 You can also specify GITHUB_TOKEN as an environment variable.
@@ -33,7 +32,7 @@ read_args(){
     VERBOSE=
     SSH_OPTIONS=()
     GITHUB_TOKEN="${GITHUB_TOKEN-}"
-    ENVFILE="$CURDIR/env.sh"
+    ENVFILE="$SCRIPT_DIR/env.sh"
 
     while [ $# -ge 1 ]; do
         case "$1" in
@@ -66,16 +65,6 @@ read_args(){
     fi    
 }
 
-# override ssh with SSH_OPTIONS
-ssh(){
-    command ssh "${SSH_OPTIONS[@]}" "$@"
-}
-
-read_args "$@"
-
-# shellcheck source=/dev/null
-source "$ENVFILE"
-
 defined_check(){
     set +u
     local missing_vars=()
@@ -96,10 +85,20 @@ defined_check(){
     set -u
 }
 
-defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+read_envfile(){
+    # shellcheck source=/dev/null
+    source "$ENVFILE"
 
-readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
-readonly TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
+    defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+
+    readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
+    readonly TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
+}
+
+# override ssh with SSH_OPTIONS
+ssh(){
+    command ssh "${SSH_OPTIONS[@]}" "$@"
+}
 
 set_timezone(){
     info "set timezone"
@@ -117,7 +116,7 @@ set_timezone(){
 }
 
 install_apps(){
-    cd "$CURDIR"
+    cd "$SCRIPT_DIR"
 
     if ! [ -e installer.sh ]; then
         error "installer.sh does not exist"
@@ -149,7 +148,7 @@ git_setup(){
 }
 
 send_toolkit(){
-    cd "$CURDIR"
+    cd "$SCRIPT_DIR"
 
     local server
     for server in "${SERVERS[@]}"; do
@@ -174,7 +173,7 @@ toolkit_setup(){
         # shellcheck disable=SC2029
         ssh "$REMOTE_USER@$server" "
             set -e
-            echo SERVER_NAME=$server >>$TOOLKIT_DIR/env.sh
+            echo 'SERVER_NAME=$server' >>$TOOLKIT_DIR/env.sh
             sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
             sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
         "
@@ -188,6 +187,8 @@ EOF
     done
 }
 
+read_args "$@"
+read_envfile
 set_timezone
 install_apps
 git_setup
