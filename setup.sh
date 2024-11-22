@@ -14,8 +14,8 @@ info(){
 
 usage(){
     cat <<EOF
-Usage: $0 [-h | --help] [-v] [-o KEY=VALUE] [--github-token GITHUB_TOKEN] [--envfile ENVFILE]
-Set up multiple servers at once
+Usage: $0 [-h | --help] [-v] [-o KEY=VALUE] [--github-token GITHUB_TOKEN] [--envfile ENVFILE] SERVER
+Set up a single server for competitors
 
 You can also specify GITHUB_TOKEN as an environment variable.
 
@@ -33,6 +33,7 @@ read_args(){
     SSH_OPTIONS=()
     GITHUB_TOKEN="${GITHUB_TOKEN-}"
     ENVFILE="$SCRIPT_DIR/env.sh"
+    SERVER=
 
     while [ $# -ge 1 ]; do
         case "$1" in
@@ -50,7 +51,13 @@ read_args(){
                 [ $# -ge 2 ] || { usage && exit 1; }
                 ENVFILE=$2
                 shift 2;;
-            *) usage; exit 1;;
+            *)
+                if [ -n "$SERVER" ]; then
+                    error 'cannot setup multiple servers at once'
+                    exit 1
+                fi
+                SERVER=$1
+                shift 1;;
         esac
     done
 
@@ -58,7 +65,7 @@ read_args(){
         usage; exit 1
     fi
 
-    readonly VERBOSE SSH_OPTIONS GITHUB_TOKEN ENVFILE
+    readonly VERBOSE SSH_OPTIONS GITHUB_TOKEN ENVFILE SERVER
 
     if [ -n "$VERBOSE" ]; then
         set -x
@@ -104,15 +111,12 @@ set_timezone(){
     info "set timezone"
 
     local -r TIMEZONE="Asia/Tokyo"
-    local server
-    for server in "${SERVERS[@]}"; do
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            set -e
-            sudo timedatectl set-timezone $TIMEZONE
-            timedatectl
-        "
-    done
+    # shellcheck disable=SC2029
+    ssh "$REMOTE_USER@$SERVER" "
+        set -e
+        sudo timedatectl set-timezone $TIMEZONE
+        timedatectl
+    "
 }
 
 install_apps(){
@@ -123,68 +127,56 @@ install_apps(){
         exit 1
     fi
 
-    local server
-    for server in "${SERVERS[@]}"; do
-        info "install apps in $server"
-        # --login is used to search for Go directories.
-        ssh "$REMOTE_USER@$server" "bash --login -s" <installer.sh
-    done    
+    info "install apps in $SERVER"
+    # --login is used to search for Go directories.
+    ssh "$REMOTE_USER@$SERVER" "bash --login -s" <installer.sh
 }
 
 git_setup(){
-    local server
-    for server in "${SERVERS[@]}"; do
-        ssh "$REMOTE_USER@$server" 'gh auth login --with-token' <<<"$GITHUB_TOKEN"
+    ssh "$REMOTE_USER@$SERVER" 'gh auth login --with-token' <<<"$GITHUB_TOKEN"
 
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            set -e
-            gh auth setup-git
-            gh repo clone $GITHUB_REPO $REPO_DIR
-            git config --global user.email $GIT_EMAIL
-            git config --global user.name $GIT_USERNAME
-        "
-    done
+    # shellcheck disable=SC2029
+    ssh "$REMOTE_USER@$SERVER" "
+        set -e
+        gh auth setup-git
+        gh repo clone $GITHUB_REPO $REPO_DIR
+        git config --global user.email $GIT_EMAIL
+        git config --global user.name $GIT_USERNAME
+    "
 }
 
 send_toolkit(){
     cd "$SCRIPT_DIR"
 
-    local server
-    for server in "${SERVERS[@]}"; do
-        info "send toolkit to $server"
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "mkdir -p $TOOLKIT_DIR"
+    info "send toolkit to $SERVER"
+    # shellcheck disable=SC2029
+    ssh "$REMOTE_USER@$SERVER" "mkdir -p $TOOLKIT_DIR"
 
-        # the 3rd line: toolkit v1
-        # the 4th line: toolkit v2
-        rsync -av \
-            alp pt-query-digest util.sh \
-            toolkit-v1.mk toolkit-v1.sh \
-            commands toolkit.sh \
-            "$ENVFILE" \
-            "$REMOTE_USER@$server:$TOOLKIT_DIR/"
-    done
+    # the 3rd line: toolkit v1
+    # the 4th line: toolkit v2
+    rsync -av \
+        alp pt-query-digest util.sh \
+        toolkit-v1.mk toolkit-v1.sh \
+        commands toolkit.sh \
+        "$ENVFILE" \
+        "$REMOTE_USER@$SERVER:$TOOLKIT_DIR/"
 }
 
 toolkit_setup(){
-    local server
-    for server in "${SERVERS[@]}"; do
-        # shellcheck disable=SC2029
-        ssh "$REMOTE_USER@$server" "
-            set -e
-            echo 'SERVER_NAME=$server' >>$TOOLKIT_DIR/env.sh
-            sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
-            sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
-        "
+    # shellcheck disable=SC2029
+    ssh "$REMOTE_USER@$SERVER" "
+        set -e
+        echo 'SERVER_NAME=$SERVER' >>$TOOLKIT_DIR/env.sh
+        sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
+        sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
+    "
 
-        info "append completion setting to .bashrc in $server"
-        ssh "$REMOTE_USER@$server" 'cat >>~/.bashrc' <<'EOF'
+    info "append completion setting to .bashrc in $SERVER"
+    ssh "$REMOTE_USER@$SERVER" 'cat >>~/.bashrc' <<'EOF'
 [[ $PS1 && -f /usr/share/bash-completion/bash_completion ]] && \
     . /usr/share/bash-completion/bash_completion
 command -v isutool >/dev/null && eval "$(isutool completion bash)"
 EOF
-    done
 }
 
 read_args "$@"
