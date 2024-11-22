@@ -65,16 +65,6 @@ read_args(){
     fi    
 }
 
-# override ssh with SSH_OPTIONS
-ssh(){
-    command ssh "${SSH_OPTIONS[@]}" "$@"
-}
-
-read_args "$@"
-
-# shellcheck source=/dev/null
-source "$ENVFILE"
-
 defined_check(){
     set +u
     local missing_vars=()
@@ -95,10 +85,20 @@ defined_check(){
     set -u
 }
 
-defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+read_envfile(){
+    # shellcheck source=/dev/null
+    source "$ENVFILE"
 
-readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
-readonly TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
+    defined_check GIT_EMAIL GIT_USERNAME GITHUB_REPO REMOTE_USER
+
+    readonly REMOTE_USER_HOME="/home/$REMOTE_USER"
+    readonly TOOLKIT_DIR="$REMOTE_USER_HOME/.isucon-toolkit"
+}
+
+# override ssh with SSH_OPTIONS
+ssh(){
+    command ssh "${SSH_OPTIONS[@]}" "$@"
+}
 
 set_timezone(){
     info "set timezone"
@@ -187,6 +187,8 @@ EOF
     done
 }
 
+read_args "$@"
+read_envfile
 set_timezone
 install_apps
 git_setup
