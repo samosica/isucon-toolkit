@@ -60,6 +60,12 @@ run-command(){
 read-args "$@"
 
 # shellcheck disable=SC2317
+isucon12(){
+    cd "$REPO_DIR/go"
+    make isuports
+}
+
+# shellcheck disable=SC2317
 isucon13(){
     cd "$REPO_DIR/go"
     make build
