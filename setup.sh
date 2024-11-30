@@ -178,6 +178,7 @@ toolkit_setup(){
         echo 'SERVER_NAME=$SERVER' >>$TOOLKIT_DIR/env.sh
         sudo ln -s $TOOLKIT_DIR/toolkit.sh /usr/local/bin/isutool
         sudo install $TOOLKIT_DIR/toolkit-v1.sh /usr/local/bin/isutool-v1
+        sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vi 500
     "
 
     info "append completion setting to .bashrc in $SERVER"
