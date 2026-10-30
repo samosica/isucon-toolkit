@@ -43,21 +43,21 @@ if ! command -v pt-query-digest >/dev/null 2>&1; then
 fi
 
 if ! command -v alp >/dev/null 2>&1; then
-    readonly ALP_VERSION=v1.0.21
+    readonly ALP_VERSION=v1.0.22
 	curl -LO "https://github.com/tkuchiki/alp/releases/download/${ALP_VERSION}/alp_linux_amd64.tar.gz"
 	tar xf alp_linux_amd64.tar.gz
 	sudo install alp /usr/local/bin
 fi
 
 if ! command -v slp >/dev/null 2>&1; then
-    readonly SLP_VERSION=v0.2.1
+    readonly SLP_VERSION=v0.2.3
 	curl -LO "https://github.com/tkuchiki/slp/releases/download/${SLP_VERSION}/slp_linux_amd64.tar.gz"
 	tar xf slp_linux_amd64.tar.gz
 	sudo install slp /usr/local/bin
 fi
 
 if ! command -v notify_slack >/dev/null 2>&1; then
-    readonly NOTIFY_SLACK_VERSION=v0.5.1
+    readonly NOTIFY_SLACK_VERSION=v0.5.15
 	curl -LO "https://github.com/catatsuy/notify_slack/releases/download/${NOTIFY_SLACK_VERSION}/notify_slack-linux-amd64.tar.gz"
 	tar xf notify_slack-linux-amd64.tar.gz
 	sudo install notify_slack /usr/local/bin
@@ -69,7 +69,7 @@ if ! command -v unzip >/dev/null 2>&1; then
 fi
 
 if ! command -v duckdb >/dev/null 2>&1; then
-    readonly DUCKDB_VERSION=v1.1.3
+    readonly DUCKDB_VERSION=v1.5.6
     curl -LO "https://github.com/duckdb/duckdb/releases/download/${DUCKDB_VERSION}/duckdb_cli-linux-amd64.zip"
     unzip duckdb_cli-linux-amd64.zip
     sudo install duckdb /usr/local/bin
@@ -84,7 +84,7 @@ if ! command -v graphviz >/dev/null 2>&1; then
 fi
 
 if ! command -v tbls >/dev/null 2>&1; then
-    readonly TBLS_VERSION=v1.79.3
+    readonly TBLS_VERSION=v1.96.1
     curl -o tbls.deb -L "https://github.com/k1LoW/tbls/releases/download/${TBLS_VERSION}/tbls_${TBLS_VERSION#v}-1_amd64.deb"
     sudo dpkg -i tbls.deb
 fi
@@ -101,7 +101,7 @@ if ! command -v mycli >/dev/null 2>&1; then
     sudo apt install -y mycli
 fi
 
-readonly GO_VERSION=go1.23.3
+readonly GO_VERSION=go1.27.3
 if ! command -v go >/dev/null 2>&1; then
     INSTALL_GO=1
 else
@@ -136,7 +136,7 @@ if [ -n "${INSTALL_GO:+x}" ]; then
 fi
 
 if ! command -v gh >/dev/null 2>&1; then
-    readonly GH_VERSION=v2.62.0
+    readonly GH_VERSION=v2.102.0
     readonly GH_DOWNLOAD_URL="https://github.com/cli/cli/releases/download/${GH_VERSION}/gh_${GH_VERSION#v}_linux_amd64.tar.gz"
     curl -LO "$GH_DOWNLOAD_URL"
 
