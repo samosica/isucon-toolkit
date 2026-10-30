@@ -54,7 +54,7 @@ run-command(){
 
     if [ -n "$VERBOSE" ]; then
         set -x
-    fi    
+    fi
 }
 
 read-args "$@"
@@ -74,6 +74,9 @@ isucon13(){
 if [ -n "${CONTEST:-}" ] && command -v "$CONTEST" >/dev/null 2>&1; then
     $CONTEST; exit 0
 fi
+
+# cd "$REPO_DIR/go"
+# CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o isuride -ldflags "-s -w"
 
 error "build command is not implemented yet; run isutool edit-command build"
 exit 1
